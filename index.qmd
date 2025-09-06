@@ -1,0 +1,42 @@
+---
+title: Hyacinthe Sarr - STA 9750
+---
+
+# Welcome to my website
+
+I'm a graduate student in the **MS Statistics (Data Science)** at Baruch College. This website hosts all my coursework submission as well as the projects for **STA9750 - Software Tools for Data Analysis**. Before starting my MS in Statistics, I worked as an **Underwriter** at **Fora Financial** where I gained experience in financial analysis and risk assessment. I also graduated from Baruch College with a **BA in Actuarial Science**.
+
+- Interests: Data Science, R, Regression Analysis
+
+## Connect with me
+
+Linkedin: [Hyacinthe Sarr](https://www.linkedin.com/in/hsarr2802/)
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+if (!require("leaflet")) {
+  options(repos = c(CRAN = "https://cloud.r-project.org"))
+  install.packages("leaflet")
+  stopifnot(require("leaflet"))
+}
+
+baruch_longitude <- -73.98333
+baruch_latitude  <-  40.75028
+
+leaflet() |>
+  addTiles() |>
+  setView(baruch_longitude, baruch_latitude, zoom = 17) |>
+  addPopups(baruch_longitude, baruch_latitude,
+            "Here is <b>Baruch College</b>!")
+```
+
+```{r}
+#| include: false
+1+1
+```
+--------------
+Last Updated: `r format(Sys.time(), "%A %m %d, %Y at %H:%M%p")`
+
