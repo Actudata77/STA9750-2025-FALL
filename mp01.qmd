@@ -57,7 +57,7 @@ glimpse(GLOBAL_TOP_10)
 GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
     mutate(season_title = if_else(season_title == "N/A", NA, season_title))
 
-# Confirm N/A values are properly coded
+# Confirm N/A values are properly coded for the Global dataset
 str(GLOBAL_TOP_10)
 ```
 
@@ -71,3 +71,33 @@ COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
 # Confirm NA values are properly coded for the Country dataset
 glimpse(COUNTRY_TOP_10)
 ```
+
+```{r}
+# Using the sample function , chose a random number of rows
+GLOBAL_TOP_10[sample(nrow(GLOBAL_TOP_10), 10), ]
+```
+
+```{r}
+library(DT)
+GLOBAL_TOP_10 |> 
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE))
+```
+
+The column names such as `weekly_hours_viewed` are not properly formatted. Large numbers in that column are also not presented with commas.
+Let's fix that!
+
+```{r}
+library(stringr)
+format_titles <- function(df){
+    colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+    df
+}
+
+GLOBAL_TOP_10 |> 
+    format_titles() |>
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE)) |>
+    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+```
+
