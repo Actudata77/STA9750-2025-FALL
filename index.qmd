@@ -11,7 +11,7 @@ I’m a graduate student in the **MS in Statistics (Data Science)** at Baruch Co
 
 ## Connect with me
 
-[Linkedin](https://www.linkedin.com/in/hsarr2802/)
+Linkedin: [Hyacinthe Sarr](https://www.linkedin.com/in/hsarr2802/)
 
 ### Baruch College
 ```{r}
