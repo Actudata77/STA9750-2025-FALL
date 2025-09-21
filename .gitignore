@@ -21,3 +21,6 @@ data/**
 /.quarto/*
 **/gganim*
 /.quarto/
+check.R
+helperctions.R
+lab04.R
