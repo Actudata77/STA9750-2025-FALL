@@ -1,0 +1,73 @@
+---
+title: "Mini Project 01"
+author: "Hyacinthe Sarr"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show technical details"
+---
+
+```{r}
+if(!dir.exists(file.path("data", "mp01"))){
+    dir.create(file.path("data", "mp01"), showWarnings=FALSE, recursive=TRUE)
+}
+
+GLOBAL_TOP_10_FILENAME <- file.path("data", "mp01", "global_top10_alltime.csv")
+
+if(!file.exists(GLOBAL_TOP_10_FILENAME)){
+    download.file("https://www.netflix.com/tudum/top10/data/all-weeks-global.tsv", 
+                  destfile=GLOBAL_TOP_10_FILENAME)
+}
+
+COUNTRY_TOP_10_FILENAME <- file.path("data", "mp01", "country_top10_alltime.csv")
+
+if(!file.exists(COUNTRY_TOP_10_FILENAME)){
+    download.file("https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv", 
+                  destfile=COUNTRY_TOP_10_FILENAME)
+}
+```
+
+# Load required libraries
+
+```{r}
+if(!require("tidyverse")) install.packages("tidyverse")
+library(readr)
+library(dplyr)
+library(stringr)
+library(DT)
+```
+
+```{r}
+if (!require("tidyverse")) install.packages("tidyverse")
+library(readr)
+library(dplyr)
+
+GLOBAL_TOP_10 <- read_tsv(GLOBAL_TOP_10_FILENAME)
+```
+
+```{r}
+str(GLOBAL_TOP_10)
+```
+```{r}
+glimpse(GLOBAL_TOP_10)
+```
+
+```{r}
+GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
+    mutate(season_title = if_else(season_title == "N/A", NA, season_title))
+
+# Confirm N/A values are properly coded
+str(GLOBAL_TOP_10)
+```
+
+```{r}
+str(GLOBAL_TOP_10)
+```
+
+```{r}
+COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
+
+# Confirm NA values are properly coded for the Country dataset
+glimpse(COUNTRY_TOP_10)
+```
