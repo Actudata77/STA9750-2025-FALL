@@ -4,7 +4,7 @@ title: Hyacinthe Sarr - STA 9750
 
 # Welcome to my website
 
-I’m a graduate student in the **MS in Statistics (Data Science)** at Baruch College. This site hosts coursework and projects for STA 9750 – Software Tools for Data Analysis.Previously, I worked as an **Underwriter** at **Fora Financial**, focusing on financial analysis and risk assessment. I hold a **Bachelors degree in Actuarial** Science from Baruch College and a **Bachelor’s in International Business** from Université Paul Valéry (Montpellier, France).
+I’m a graduate student in the **MS in Statistics (Data Science)** at Baruch College. This site hosts coursework and projects for STA 9750 – Software Tools for Data Analysis.Previously, I worked as an **Underwriter** at **Fora Financial**, focusing on financial analysis and risk assessment. I hold a **Bachelor's degree in Actuarial** Science from Baruch College and a **Bachelor’s in International Business** from Université Paul Valéry (Montpellier, France).
 
 
 - Interests: Statistical Analysis, Risk Analysis, Predictive Modeling, Probability Theory.
@@ -13,6 +13,7 @@ I’m a graduate student in the **MS in Statistics (Data Science)** at Baruch Co
 
 [Linkedin](https://www.linkedin.com/in/hsarr2802/)
 
+### Baruch College
 ```{r}
 #| echo: false
 #| message: false
@@ -33,6 +34,25 @@ leaflet() |>
   addPopups(baruch_longitude, baruch_latitude,
             "Here is <b>Baruch College</b>!")
 ```
+
+
+### Université Paul Valéry
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+montpellier_longitude <- 3.8695
+montpellier_latitude  <- 43.6333
+
+leaflet() |>
+  addTiles() |>
+  setView(montpellier_longitude, montpellier_latitude, zoom = 16) |>
+  addMarkers(lng = montpellier_longitude,
+             lat = montpellier_latitude,
+             popup = "Here is <b>Université Paul Valéry</b> (Montpellier)!")
+```
+
 
 ```{r}
 #| include: false
