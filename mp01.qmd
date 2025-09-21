@@ -8,6 +8,8 @@ format:
     code-summary: "Show technical details"
 ---
 
+# Acquire Data
+
 ```{r}
 if(!dir.exists(file.path("data", "mp01"))){
     dir.create(file.path("data", "mp01"), showWarnings=FALSE, recursive=TRUE)
@@ -28,7 +30,7 @@ if(!file.exists(COUNTRY_TOP_10_FILENAME)){
 }
 ```
 
-# Load required libraries
+# Data Import and Preparation
 
 ```{r}
 if(!require("tidyverse")) install.packages("tidyverse")
@@ -38,6 +40,8 @@ library(stringr)
 library(DT)
 ```
 
+## Data Import for the Global Top 10 dataset
+
 ```{r}
 if (!require("tidyverse")) install.packages("tidyverse")
 library(readr)
@@ -46,36 +50,52 @@ library(dplyr)
 GLOBAL_TOP_10 <- read_tsv(GLOBAL_TOP_10_FILENAME)
 ```
 
+Let's examine the structure of the dataset
+
 ```{r}
 str(GLOBAL_TOP_10)
 ```
+
 ```{r}
 glimpse(GLOBAL_TOP_10)
 ```
+
+The dataset has 8,800 rows and 9 columns
+
+By looking at the structure above, we do have some missing values not formatted as R would want it. Let's fix that issue
+
+## Data Cleaning for the Global Top 10 dataset
 
 ```{r}
 GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
     mutate(season_title = if_else(season_title == "N/A", NA, season_title))
 
-# Confirm N/A values are properly coded for the Global dataset
 str(GLOBAL_TOP_10)
 ```
+
+Let's now confirm that the missing values are properly formatted for R.
 
 ```{r}
 str(GLOBAL_TOP_10)
 ```
+Great, let's turn to our second dataset that we will use. 
+
+##  Data Import for the Country Top 10 dataset
 
 ```{r}
 COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
 
-# Confirm NA values are properly coded for the Country dataset
+
 glimpse(COUNTRY_TOP_10)
 ```
+We handle the missing values straight in the import phase in the `read_tsv`. We can see that missing values are format the way R wants it to.
 
+After viewing the head and tail of the data, we want to just gain better sense of the data. For that let's chose a random number of rows other than the head or tail of the data by using the sample function to select random rows.
 ```{r}
-# Using the sample function , chose a random number of rows
 GLOBAL_TOP_10[sample(nrow(GLOBAL_TOP_10), 10), ]
 ```
+
+# Initial Data Exploration
 
 ```{r}
 library(DT)
@@ -100,4 +120,32 @@ GLOBAL_TOP_10 |>
     datatable(options=list(searching=FALSE, info=FALSE)) |>
     formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
 ```
+We can now drop the `season_title` since here we are only showing films.
+
+```{r}
+GLOBAL_TOP_10 |> 
+    select(-season_title) |>
+    format_titles() |>
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE)) |>
+    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+```
+Finally, let's convert `Runtime` to minutes
+
+```{r}
+GLOBAL_TOP_10 |> 
+    mutate(`runtime_(minutes)` = round(60 * runtime)) |>
+    select(-season_title, 
+           -runtime) |>
+    format_titles() |>
+    head(n=20) |>
+    datatable(options=list(searching=FALSE, info=FALSE)) |>
+    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+
+```
+Much better!
+
+We are now ready for some Explanatory Data Analysis.
+
+# EDA
 
