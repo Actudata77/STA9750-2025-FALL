@@ -2,16 +2,22 @@
 title: Hyacinthe Sarr - STA 9750
 ---
 
-# Welcome to my website
+## Welcome to my portfolio
 
-I’m a graduate student in the **MS in Statistics (Data Science)** at Baruch College. This site hosts coursework and projects for STA 9750 – Software Tools for Data Analysis.Previously, I worked as an **Underwriter** at **Fora Financial**, focusing on financial analysis and risk assessment. I hold a **Bachelor's degree in Actuarial** Science from Baruch College and a **Bachelor’s in International Business** from Université Paul Valéry (Montpellier, France).
-
+I’m a graduate student in the **MS in Statistics (Data Science)** at Baruch College. This site hosts coursework and projects for STA 9750 – Software Tools for Data Analysis.Previously, I worked as an **Underwriter** at **Fora Financial**, focusing on financial analysis and risk assessment. I hold a **Bachelor's degree in Actuarial** Science from Baruch College and a **Bachelor’s in International Business** from Université Paul Valéry in Montpellier, France.
 
 - Interests: Statistical Analysis, Risk Analysis, Predictive Modeling, Probability Theory.
 
-## Connect with me
 
-[Linkedin](https://www.linkedin.com/in/hsarr2802/)
+## Connect with me  
+
+<div align="center">
+
+[<i class="fa-brands fa-linkedin"></i> LinkedIn: Hyacinthe Sarr](https://www.linkedin.com/in/hsarr2802/) · 
+[<i class="fa-brands fa-github"></i> GitHub: actudata77](https://github.com/actudata77)
+
+</div>
+
 
 ### Baruch College
 ```{r}
