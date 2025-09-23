@@ -8,7 +8,7 @@ format:
     code-summary: "Show technical details"
 ---
 
-# Acquire Data
+# Acquire the Data
 
 ```{r}
 if(!dir.exists(file.path("data", "mp01"))){
@@ -30,7 +30,6 @@ if(!file.exists(COUNTRY_TOP_10_FILENAME)){
 }
 ```
 
-# Data Import and Preparation
 
 ```{r}
 if(!require("tidyverse")) install.packages("tidyverse")
@@ -148,4 +147,37 @@ Much better!
 We are now ready for some Explanatory Data Analysis.
 
 # EDA
+
+**1. How many different countries does Netflix operate in?**
+
+```{r, echo=FALSE}
+
+countries <- COUNTRY_TOP_10 |>
+ summarise(num_countries = n_distinct(country_name))
+```
+  
+Netflix operates in *`r countries$num_countries`* countries.  
+
+**2. Which non-English-language film has spent the most cumulative weeks in the global top 10?**
+```{r}
+
+non_english_top <- GLOBAL_TOP_10 |>
+  filter(category == "Films (Non-English)") |>
+  arrange(desc(cumulative_weeks_in_top_10)) |>
+  slice(1) |>
+  select(show_title, cumulative_weeks_in_top_10)
+
+non_english_top
+```
+
+The non-English film with the most cumulative weeks in the global top 10 is *`r non_english_top$show_title`* with *`r non_english_top$cumulative_weeks_in_top_10`* weeks.
+
+
+
+
+
+
+
+
+
 
