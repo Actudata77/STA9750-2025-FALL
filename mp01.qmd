@@ -160,7 +160,6 @@ Netflix operates in *`r countries$num_countries`* countries.
 
 **2. Which non-English-language film has spent the most cumulative weeks in the global top 10?**
 ```{r}
-
 non_english_top <- GLOBAL_TOP_10 |>
   filter(category == "Films (Non-English)") |>
   arrange(desc(cumulative_weeks_in_top_10)) |>
@@ -173,10 +172,30 @@ non_english_top
 The non-English film with the most cumulative weeks in the global top 10 is *`r non_english_top$show_title`* with *`r non_english_top$cumulative_weeks_in_top_10`* weeks.
 
 
+**3. What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
+```{r}
+longest_film <- GLOBAL_TOP_10 |>
+  filter(category %in% c("Films (English)", "Films (Non-English)")) |>
+  arrange(desc(runtime)) |>
+  slice(1) |>
+  select(show_title, runtime)
+longest_film
+```
 
+The longest film to have ever appeared in the Netflix global Top 10 is *`r longest_film$show_title`* with a runtime of *`r round(60 * longest_film$runtime)`* minutes.
 
+**4.For each of the four categories, what program has the most total hours of global viewership?**
 
+```{r}
+top_viewed_by_category <- GLOBAL_TOP_10 |>
+  group_by(category) |>
+  slice_max(weekly_hours_viewed, n = 1) |>
+  select(category, show_title, weekly_hours_viewed) |> 
+  datatable(options=list(searching=FALSE, info=FALSE)) |>
+  formatRound(c('weekly_hours_viewed'))
+top_viewed_by_category
 
+```
 
 
 
