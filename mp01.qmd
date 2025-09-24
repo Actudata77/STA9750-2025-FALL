@@ -191,12 +191,37 @@ top_viewed_by_category <- GLOBAL_TOP_10 |>
   group_by(category) |>
   slice_max(weekly_hours_viewed, n = 1) |>
   select(category, show_title, weekly_hours_viewed) |> 
+  format_titles() |>
   datatable(options=list(searching=FALSE, info=FALSE)) |>
-  formatRound(c('weekly_hours_viewed'))
+  formatRound(c('Weekly Hours Viewed'))
 top_viewed_by_category
+```
+**5. Which TV show had the longest run in a country’s Top 10? How long was this run and in what country did it occur?**
+
+```{r}
+longest_tv_show_run <- COUNTRY_TOP_10 |>
+  filter(category == "TV") |>  # or: category %in% c("TV (English)", "TV (Non-English)")
+  group_by(country_name, show_title) |>          # include the show
+  summarise(weeks = max(cumulative_weeks_in_top_10, na.rm = TRUE)) |>
+  ungroup() |> 
+  arrange(desc(weeks)) |>
+  slice(1)
+longest_tv_show_run
 
 ```
 
+The TV show with the longest run in a country's Top 10 is *`r longest_tv_show_run$show_title`* in *`r longest_tv_show_run$country_name`* with a total of *`r longest_tv_show_run$weeks`* weeks.
 
+**6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
+```{r}
+last_country <- COUNTRY_TOP_10 |>
+  group_by(country_name) |>
+  summarise(max_week = max(week, na.rm = TRUE)) |>
+  ungroup() |>
+  arrange(max_week) |> 
+  slice(1)
 
+last_country
+```
+The country where Netflix ceased operations the earliest is *`r last_country$country_name`* in the week of *`r last_country$max_week`*.
