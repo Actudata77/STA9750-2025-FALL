@@ -225,3 +225,25 @@ last_country <- COUNTRY_TOP_10 |>
 last_country
 ```
 The country where Netflix ceased operations the earliest is *`r last_country$country_name`* in the week of *`r last_country$max_week`*.
+
+**7.What is the total viewership of the TV show Squid Game? Note that there are three seasons total and we are looking for the total number of hours watched across all seasons.**
+```{r}
+squid_game_viewership <- GLOBAL_TOP_10 |>
+  filter(show_title == "Squid Game") |>
+  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE))
+squid_game_viewership
+```
+The total viewership of the TV show Squid Game across all seasons is *`r round(squid_game_viewership$total_hours)`* hours.
+
+
+**8.The movie Red Notice has a runtime of 1 hour and 58 minutes. Approximately how many views did it receive in 2021? Note that Netflix does not provide the weekly_views values that far back in the past, but you can compute it yourself using the total view time and the runtime.**
+```{r}
+red_notice_views_2021 <- GLOBAL_TOP_10 |>
+  filter(show_title == "Red Notice" & year(week) == 2021) |> 
+  summarise(total_views = sum(weekly_hours_viewed) / (1 + 58/60))
+red_notice_views_2021
+```
+  
+The movie Red Notice received approximately *`r round(red_notice_views_2021$total_views)`* views in 2021.
+  
+  
