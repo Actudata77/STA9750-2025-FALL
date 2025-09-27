@@ -174,15 +174,17 @@ The non-English film with the most cumulative weeks in the global top 10 is *`r 
 
 **3. What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
 ```{r}
-longest_film <- GLOBAL_TOP_10 |>
-  filter(category %in% c("Films (English)", "Films (Non-English)")) |>
-  arrange(desc(runtime)) |>
-  slice(1) |>
-  select(show_title, runtime)
-longest_film
+longest_film_in_minutes<- GLOBAL_TOP_10 |> 
+  filter(category == "Films (English)" | category == "Films (Non-English)") |> 
+  arrange(desc(runtime)) |> 
+  slice(1) |> 
+  mutate(runtime_minutes = round(runtime * 60)) |> 
+  select(show_title,runtime_minutes)
+  
+longest_film_in_minutes
 ```
 
-The longest film to have ever appeared in the Netflix global Top 10 is *`r longest_film$show_title`* with a runtime of *`r round(60 * longest_film$runtime)`* minutes.
+The longest film to have ever appeared in the Netflix global Top 10 is *`r longest_film_in_minutes$show_title`* with a runtime of *`r longest_film_in_minutes$runtime_minutes`* minutes.
 
 **4.For each of the four categories, what program has the most total hours of global viewership?**
 
@@ -246,4 +248,8 @@ red_notice_views_2021
   
 The movie Red Notice received approximately *`r round(red_notice_views_2021$total_views)`* views in 2021.
   
+**9.How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
+
+
+
   
