@@ -189,27 +189,30 @@ The longest film to have ever appeared in the Netflix global Top 10 is *`r longe
 **4.For each of the four categories, what program has the most total hours of global viewership?**
 
 ```{r}
-top_viewed_by_category <- GLOBAL_TOP_10 |>
-  group_by(category) |>
-  slice_max(weekly_hours_viewed, n = 1) |>
-  select(category, show_title, weekly_hours_viewed) |> 
-  format_titles() |>
+most_viewed_program <- GLOBAL_TOP_10 |> 
+  group_by(category, show_title) |> 
+  summarise(total_hours_viewed = sum(weekly_hours_viewed, na.rm = TRUE)) |> 
+  group_by(category) |> 
+  slice_max(total_hours_viewed) |> 
+  select(category, show_title, total_hours_viewed) |> 
+  format_titles() |> 
   datatable(options=list(searching=FALSE, info=FALSE)) |>
-  formatRound(c('Weekly Hours Viewed'))
-top_viewed_by_category
+  formatRound(c('Total Hours Viewed'))
+most_viewed_program
+
 ```
 **5. Which TV show had the longest run in a country’s Top 10? How long was this run and in what country did it occur?**
 
 ```{r}
 longest_tv_show_run <- COUNTRY_TOP_10 |>
-  filter(category == "TV") |>  # or: category %in% c("TV (English)", "TV (Non-English)")
-  group_by(country_name, show_title) |>          # include the show
+  filter(category == "TV") |> 
+  group_by(country_name, show_title) |>          
   summarise(weeks = max(cumulative_weeks_in_top_10, na.rm = TRUE)) |>
   ungroup() |> 
   arrange(desc(weeks)) |>
   slice(1)
-longest_tv_show_run
 
+longest_tv_show_run
 ```
 
 The TV show with the longest run in a country's Top 10 is *`r longest_tv_show_run$show_title`* in *`r longest_tv_show_run$country_name`* with a total of *`r longest_tv_show_run$weeks`* weeks.
@@ -217,22 +220,24 @@ The TV show with the longest run in a country's Top 10 is *`r longest_tv_show_ru
 **6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
 ```{r}
-last_country <- COUNTRY_TOP_10 |>
+dropped_country <- COUNTRY_TOP_10 |>
   group_by(country_name) |>
   summarise(max_week = max(week, na.rm = TRUE)) |>
   ungroup() |>
   arrange(max_week) |> 
   slice(1)
 
-last_country
+dropped_country
 ```
-The country where Netflix ceased operations the earliest is *`r last_country$country_name`* in the week of *`r last_country$max_week`*.
+The country where Netflix ceased operations the earliest is *`r dropped_country$country_name`* in the week of *`r dropped_country$max_week`*.
 
 **7.What is the total viewership of the TV show Squid Game? Note that there are three seasons total and we are looking for the total number of hours watched across all seasons.**
 ```{r}
 squid_game_viewership <- GLOBAL_TOP_10 |>
   filter(show_title == "Squid Game") |>
-  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE))
+  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE)) |> 
+  mutate(show_title = "Squid Game") |> 
+  select(show_title, total_hours)
 squid_game_viewership
 ```
 The total viewership of the TV show Squid Game across all seasons is *`r round(squid_game_viewership$total_hours)`* hours.
@@ -242,7 +247,10 @@ The total viewership of the TV show Squid Game across all seasons is *`r round(s
 ```{r}
 red_notice_views_2021 <- GLOBAL_TOP_10 |>
   filter(show_title == "Red Notice" & year(week) == 2021) |> 
-  summarise(total_views = sum(weekly_hours_viewed) / (1 + 58/60))
+  summarise(total_views = sum(weekly_hours_viewed) / (1 + 58/60)) |> 
+  mutate(show_title = "Red Notice") |> 
+  select(show_title, total_views)
+  
 red_notice_views_2021
 ```
   
@@ -251,5 +259,17 @@ The movie Red Notice received approximately *`r round(red_notice_views_2021$tota
 **9.How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
 
 
+**10. Which TV show/season hit the top 10 in the most countries in its debut week? In how many countries did it chart?**
 
-  
+```{r}
+top_ten_debut <- COUNTRY_TOP_10 |> 
+  filter(category == "TV") |> 
+  group_by(show_title) |> 
+  filter(week == min(week)) |> 
+  summarise(countries = n_distinct(country_name)) |> 
+  ungroup() |> 
+  slice_max(countries, n=1)
+
+top_ten_debut
+```
+
