@@ -326,7 +326,8 @@ According to a 2025 Collider ranking, Season 4 of Stranger Things is widely rega
 ### Netflix breakthrough in India
 
 India is the world most populated country and has quickly become on of Netflix fastest growing market. TV shows and films in Hindi language continue their dominance in the country's top 10.Local TV and shows have stayed in the country's top 10 for numerous weeks. This prove the show broadest appeal to the domestic audience.
-```{r include=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 india_hits <- COUNTRY_TOP_10 |>
   filter(country_name == "India", str_detect(category, "Films|TV")) |>
   group_by(show_title, category) |>
