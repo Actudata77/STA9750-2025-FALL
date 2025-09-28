@@ -321,3 +321,31 @@ The TV show that hit the top 10 in the most countries was *`r top_ten_debut$show
 
 According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons , this sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater staying power: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European and African markets including Belgium, France, Kenya, and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by the record-breaking Squid Game. With nearly 3 billion hours viewed worldwide, exictement for the last season is huge.
 
+## Press Release 2:
+
+### Netflix breakthrough in India
+
+India is the world most populated country and has quickly become on of Netflix fastest growing market. TV shows and films in Hindi language continue their dominance in the country's top 10.Local TV and shows have stayed in the country's top 10 for numerous weeks. This prove the show broadest appeal to the domestic audience.
+```{r include=FALSE}
+india_hits <- COUNTRY_TOP_10 |>
+  filter(country_name == "India", str_detect(category, "Films|TV")) |>
+  group_by(show_title, category) |>
+  summarise(weeks_in_top10 = n_distinct(week), .groups="drop") |>
+  arrange(desc(weeks_in_top10))
+
+usa_titles <-  COUNTRY_TOP_10 |>
+  filter(country_name == "United States") |>
+  distinct(show_title)
+
+local_indian_hits <- india_hits |> 
+  filter(!show_title %in% usa_titles$show_title) |> 
+  format_titles() |> 
+  datatable(options = list(searching = FALSE, info = FALSE))
+         
+local_indian_hits
+```
+
+"The Great Indian Kapil Show" remained in the India's Top 10 for 43 weeks, outperforming other international competitors. In the meantime ,several of the most successful domestic TV shows and Films have never appeared in the US Top 10, underscoring the value of programming specific to different regions in the world. With Netflix counting a lot on the success of international markets, India remains a key driver of the company's success at the international level.As Netflix continue to rely on international market, these results reaffirm the platform continued investment in India.
+
+
+
