@@ -268,13 +268,11 @@ library(stringr)
 us_films <- COUNTRY_TOP_10 |>
   filter(country_name == "United States", str_starts(category, "Films")) %>%
   select(show_title, week, weekly_rank)
-head(us_films)
 
 debut <- us_films |>
   group_by(show_title) |>
   summarise(debut_week = min(week, na.rm = TRUE)) |>
   ungroup()
-head(debut)
 
 # get the ranks
 films_us_number1 <- us_films |>
@@ -287,7 +285,7 @@ films_us_number1 <- us_films |>
   inner_join(debut, by = "show_title") |>
   left_join(us_films, by = c("show_title", "debut_week" = "week")) |>
   rename(debut_rank = weekly_rank) |>
-  # Keep films that did NOT debut at #1 but eventually hit #1
+  # different start but eventually hit # 1
   filter(!is.na(debut_rank), debut_rank > 1, best_rank == 1) |>
   arrange(desc(last_week_1))
 
