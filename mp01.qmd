@@ -206,18 +206,16 @@ most_viewed_program
 **5. Which TV show had the longest run in a country’s Top 10? How long was this run and in what country did it occur?**
 
 ```{r}
-longest_tv_show_run <- COUNTRY_TOP_10 |>
-  filter(category == "TV") |>
-  group_by(country_name, show_title) |>
-  summarise(weeks = max(cumulative_weeks_in_top_10, na.rm = TRUE)) |>
-  ungroup() |>
-  arrange(desc(weeks))
+longest_tv_run <- COUNTRY_TOP_10 |> 
+  filter(category == "TV") |> 
+  group_by(country_name, show_title) |> 
+  summarise(longest_run = max(cumulative_weeks_in_top_10, na.rm = TRUE), .groups="drop") |> 
+  slice_max(longest_run, n = 1, with_ties = TRUE)
 
-
-longest_tv_show_run
+longest_tv_run
 ```
 
-The TV show with the longest run in a country's Top 10 is *`r longest_tv_show_run$show_title`* in *`r longest_tv_show_run$country_name`* with a total of *`r longest_tv_show_run$weeks`* weeks.
+The TV show with the longest run in a country's Top 10 is *`r longest_tv_run$show_title`* in *`r longest_tv_run$country_name`* with a total of *`r longest_tv_run$weeks`* weeks.
 
 **6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
@@ -320,3 +318,4 @@ The TV show that hit the top 10 in the most countries was *`r top_ten_debut$show
 ### Stranger Things: A Global Phenomenon Returns for Final Season
 
 According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons , this sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater staying power: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European and African markets including Belgium, France, Kenya, and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by the record-breaking Squid Game. With nearly 3 billion hours viewed worldwide, exictement for the last season is huge.
+
