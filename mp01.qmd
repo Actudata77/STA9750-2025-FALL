@@ -194,7 +194,7 @@ The longest film to have ever appeared in the Netflix global Top 10 is *`r longe
 ```{r}
 most_viewed_program <- GLOBAL_TOP_10 |>
   group_by(category, show_title) |>
-  summarise(total_hours_viewed = sum(weekly_hours_viewed, na.rm = TRUE)) |>
+  summarise(total_hours_viewed = sum(weekly_hours_viewed, na.rm = TRUE), .groups = "drop") |>
   group_by(category) |>
   slice_max(total_hours_viewed) |>
   select(category, show_title, total_hours_viewed) |>
