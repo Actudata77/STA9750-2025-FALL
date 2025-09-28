@@ -242,7 +242,8 @@ squid_game_viewership <- GLOBAL_TOP_10 |>
   select(show_title, total_hours)
 squid_game_viewership
 ```
-The total viewership of the TV show Squid Game across all seasons is *`r round(squid_game_viewership$total_hours)`* hours.
+The total viewership of the TV show *Squid Game* across all seasons is `r scales::comma(squid_game_viewership$total_hours)` hours.
+
 
 
 **8.The movie Red Notice has a runtime of 1 hour and 58 minutes. Approximately how many views did it receive in 2021? Note that Netflix does not provide the weekly_views values that far back in the past, but you can compute it yourself using the total view time and the runtime.**
@@ -256,7 +257,7 @@ red_notice_views_2021 <- GLOBAL_TOP_10 |>
 red_notice_views_2021
 ```
   
-The movie Red Notice received approximately *`r round(red_notice_views_2021$total_views)`* views in 2021.
+The movie Red Notice received approximately *`r scales::comma(red_notice_views_2021$total_views)`* views in 2021.
   
 **9.How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
 
