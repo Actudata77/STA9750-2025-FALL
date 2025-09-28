@@ -258,6 +258,40 @@ The movie Red Notice received approximately *`r round(red_notice_views_2021$tota
   
 **9.How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
 
+```{r}
+library(dplyr)
+library(stringr)
+
+# Holder
+us_films <- COUNTRY_TOP_10 |> 
+  filter(country_name == "United States", str_starts(category, "Films")) %>%
+  select(show_title, week, weekly_rank)
+head(us_films)
+
+debut <- us_films |> 
+  group_by(show_title) |> 
+  summarise(debut_week = min(week, na.rm = TRUE)) |> 
+  ungroup()
+head(debut)
+
+# get the ranks
+films_us_number1 <- us_films |> 
+  group_by(show_title) |> 
+  summarise(
+    best_rank   = min(weekly_rank, na.rm = TRUE),
+    last_week_1 = max(week[weekly_rank == 1], na.rm = TRUE)) |> 
+    ungroup() |> 
+  inner_join(debut, by = "show_title") |> 
+  left_join(us_films, by = c("show_title", "debut_week" = "week")) |> 
+  rename(debut_rank = weekly_rank) |> 
+  
+  # Keep films that did NOT debut at #1 but eventually hit #1
+  filter(!is.na(debut_rank), debut_rank > 1, best_rank == 1) |> 
+  arrange(desc(last_week_1))
+
+films_us_number1
+```
+
 
 **10. Which TV show/season hit the top 10 in the most countries in its debut week? In how many countries did it chart?**
 
