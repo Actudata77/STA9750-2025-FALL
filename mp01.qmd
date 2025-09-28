@@ -8,6 +8,16 @@ format:
     code-summary: "Show technical details"
 ---
 
+# Introduction
+
+In this report, we will take a close look at Netflix’s global Top 10 viewership dataset. Our ultimate goal is to uncover key insights into user engagement with the platform's films and TV shows, evaluate patterns and highlights opportunities for growth.
+In the first part of the report, by using some some Explanatory Data Analysis questions, I uncover some answers about targeted questions on Netflix most popular domestic and international programs. Those findings are then translated in press releases in the second part of report.
+
+Some key facts:
+- Netflix operates in more than 90 countries
+- Most of Netflix revenues are from international markets
+- Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters
+- How region specific programming shows growth potential
 
 # Acquire the Data
 
@@ -347,6 +357,8 @@ local_indian_hits
 ```
 
 "The Great Indian Kapil Show" remained in the India's Top 10 for 43 weeks, outperforming other international competitors. In the meantime ,several of the most successful domestic TV shows and Films have never appeared in the US Top 10, underscoring the value of programming specific to different regions in the world. With Netflix counting a lot on the success of international markets, India remains a key driver of the company's success at the international level.As Netflix continue to rely on international market, these results reaffirm the platform continued investment in India.
+
+## Press Release 3
 
 
 
