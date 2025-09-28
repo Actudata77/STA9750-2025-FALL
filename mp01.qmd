@@ -160,16 +160,16 @@ Netflix operates in *`r countries$num_countries`* countries.
 
 **2. Which non-English-language film has spent the most cumulative weeks in the global top 10?**
 ```{r}
-non_english_top <- GLOBAL_TOP_10 |>
-  filter(category == "Films (Non-English)") |>
-  arrange(desc(cumulative_weeks_in_top_10)) |>
-  slice(1) |>
+top_non_english <- GLOBAL_TOP_10 |> 
+  filter(category == "Films (Non-English)") |> 
+  arrange(desc(cumulative_weeks_in_top_10)) |> 
+  slice(1) |> 
   select(show_title, cumulative_weeks_in_top_10)
 
-non_english_top
+top_non_english
 ```
 
-The non-English film with the most cumulative weeks in the global top 10 is *`r non_english_top$show_title`* with *`r non_english_top$cumulative_weeks_in_top_10`* weeks.
+The non-English film with the most cumulative weeks in the global top 10 is *`r top_non_english$show_title`* with *`r top_non_english$cumulative_weeks_in_top_10`* weeks.
 
 
 **3. What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
