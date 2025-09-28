@@ -8,31 +8,34 @@ format:
     code-summary: "Show technical details"
 ---
 
+
 # Acquire the Data
 
 ```{r}
-if(!dir.exists(file.path("data", "mp01"))){
-    dir.create(file.path("data", "mp01"), showWarnings=FALSE, recursive=TRUE)
+if (!dir.exists(file.path("data", "mp01"))) {
+  dir.create(file.path("data", "mp01"), showWarnings = FALSE, recursive = TRUE)
 }
 
 GLOBAL_TOP_10_FILENAME <- file.path("data", "mp01", "global_top10_alltime.csv")
 
-if(!file.exists(GLOBAL_TOP_10_FILENAME)){
-    download.file("https://www.netflix.com/tudum/top10/data/all-weeks-global.tsv", 
-                  destfile=GLOBAL_TOP_10_FILENAME)
+if (!file.exists(GLOBAL_TOP_10_FILENAME)) {
+  download.file("https://www.netflix.com/tudum/top10/data/all-weeks-global.tsv",
+    destfile = GLOBAL_TOP_10_FILENAME
+  )
 }
 
 COUNTRY_TOP_10_FILENAME <- file.path("data", "mp01", "country_top10_alltime.csv")
 
-if(!file.exists(COUNTRY_TOP_10_FILENAME)){
-    download.file("https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv", 
-                  destfile=COUNTRY_TOP_10_FILENAME)
+if (!file.exists(COUNTRY_TOP_10_FILENAME)) {
+  download.file("https://www.netflix.com/tudum/top10/data/all-weeks-countries.tsv",
+    destfile = COUNTRY_TOP_10_FILENAME
+  )
 }
 ```
 
 
 ```{r}
-if(!require("tidyverse")) install.packages("tidyverse")
+if (!require("tidyverse")) install.packages("tidyverse")
 library(readr)
 library(dplyr)
 library(stringr)
@@ -67,7 +70,7 @@ By looking at the structure above, we do have some missing values not formatted 
 
 ```{r}
 GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
-    mutate(season_title = if_else(season_title == "N/A", NA, season_title))
+  mutate(season_title = if_else(season_title == "N/A", NA, season_title))
 
 str(GLOBAL_TOP_10)
 ```
@@ -98,9 +101,9 @@ GLOBAL_TOP_10[sample(nrow(GLOBAL_TOP_10), 10), ]
 
 ```{r}
 library(DT)
-GLOBAL_TOP_10 |> 
-    head(n=20) |>
-    datatable(options=list(searching=FALSE, info=FALSE))
+GLOBAL_TOP_10 |>
+  head(n = 20) |>
+  datatable(options = list(searching = FALSE, info = FALSE))
 ```
 
 The column names such as `weekly_hours_viewed` are not properly formatted. Large numbers in that column are also not presented with commas.
@@ -108,39 +111,40 @@ Let's fix that!
 
 ```{r}
 library(stringr)
-format_titles <- function(df){
-    colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
-    df
+format_titles <- function(df) {
+  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  df
 }
 
-GLOBAL_TOP_10 |> 
-    format_titles() |>
-    head(n=20) |>
-    datatable(options=list(searching=FALSE, info=FALSE)) |>
-    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+GLOBAL_TOP_10 |>
+  format_titles() |>
+  head(n = 20) |>
+  datatable(options = list(searching = FALSE, info = FALSE)) |>
+  formatRound(c("Weekly Hours Viewed", "Weekly Views"))
 ```
 We can now drop the `season_title` since here we are only showing films.
 
 ```{r}
-GLOBAL_TOP_10 |> 
-    select(-season_title) |>
-    format_titles() |>
-    head(n=20) |>
-    datatable(options=list(searching=FALSE, info=FALSE)) |>
-    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
+GLOBAL_TOP_10 |>
+  select(-season_title) |>
+  format_titles() |>
+  head(n = 20) |>
+  datatable(options = list(searching = FALSE, info = FALSE)) |>
+  formatRound(c("Weekly Hours Viewed", "Weekly Views"))
 ```
 Finally, let's convert `Runtime` to minutes
 
 ```{r}
-GLOBAL_TOP_10 |> 
-    mutate(`runtime_(minutes)` = round(60 * runtime)) |>
-    select(-season_title, 
-           -runtime) |>
-    format_titles() |>
-    head(n=20) |>
-    datatable(options=list(searching=FALSE, info=FALSE)) |>
-    formatRound(c('Weekly Hours Viewed', 'Weekly Views'))
-
+GLOBAL_TOP_10 |>
+  mutate(`runtime_(minutes)` = round(60 * runtime)) |>
+  select(
+    -season_title,
+    -runtime
+  ) |>
+  format_titles() |>
+  head(n = 20) |>
+  datatable(options = list(searching = FALSE, info = FALSE)) |>
+  formatRound(c("Weekly Hours Viewed", "Weekly Views"))
 ```
 Much better!
 
@@ -151,19 +155,18 @@ We are now ready for some Explanatory Data Analysis.
 **1. How many different countries does Netflix operate in?**
 
 ```{r, echo=FALSE}
-
 countries <- COUNTRY_TOP_10 |>
- summarise(num_countries = n_distinct(country_name))
+  summarise(num_countries = n_distinct(country_name))
 ```
   
 Netflix operates in *`r countries$num_countries`* countries.  
 
 **2. Which non-English-language film has spent the most cumulative weeks in the global top 10?**
 ```{r}
-top_non_english <- GLOBAL_TOP_10 |> 
-  filter(category == "Films (Non-English)") |> 
-  arrange(desc(cumulative_weeks_in_top_10)) |> 
-  slice(1) |> 
+top_non_english <- GLOBAL_TOP_10 |>
+  filter(category == "Films (Non-English)") |>
+  arrange(desc(cumulative_weeks_in_top_10)) |>
+  slice(1) |>
   select(show_title, cumulative_weeks_in_top_10)
 
 top_non_english
@@ -174,13 +177,13 @@ The non-English film with the most cumulative weeks in the global top 10 is *`r 
 
 **3. What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
 ```{r}
-longest_film_in_minutes<- GLOBAL_TOP_10 |> 
-  filter(category == "Films (English)" | category == "Films (Non-English)") |> 
-  arrange(desc(runtime)) |> 
-  slice(1) |> 
-  mutate(runtime_minutes = round(runtime * 60)) |> 
-  select(show_title,runtime_minutes)
-  
+longest_film_in_minutes <- GLOBAL_TOP_10 |>
+  filter(category == "Films (English)" | category == "Films (Non-English)") |>
+  arrange(desc(runtime)) |>
+  slice(1) |>
+  mutate(runtime_minutes = round(runtime * 60)) |>
+  select(show_title, runtime_minutes)
+
 longest_film_in_minutes
 ```
 
@@ -189,26 +192,25 @@ The longest film to have ever appeared in the Netflix global Top 10 is *`r longe
 **4.For each of the four categories, what program has the most total hours of global viewership?**
 
 ```{r}
-most_viewed_program <- GLOBAL_TOP_10 |> 
-  group_by(category, show_title) |> 
-  summarise(total_hours_viewed = sum(weekly_hours_viewed, na.rm = TRUE)) |> 
-  group_by(category) |> 
-  slice_max(total_hours_viewed) |> 
-  select(category, show_title, total_hours_viewed) |> 
-  format_titles() |> 
-  datatable(options=list(searching=FALSE, info=FALSE)) |>
-  formatRound(c('Total Hours Viewed'))
+most_viewed_program <- GLOBAL_TOP_10 |>
+  group_by(category, show_title) |>
+  summarise(total_hours_viewed = sum(weekly_hours_viewed, na.rm = TRUE)) |>
+  group_by(category) |>
+  slice_max(total_hours_viewed) |>
+  select(category, show_title, total_hours_viewed) |>
+  format_titles() |>
+  datatable(options = list(searching = FALSE, info = FALSE)) |>
+  formatRound(c("Total Hours Viewed"))
 most_viewed_program
-
 ```
 **5. Which TV show had the longest run in a country’s Top 10? How long was this run and in what country did it occur?**
 
 ```{r}
 longest_tv_show_run <- COUNTRY_TOP_10 |>
-  filter(category == "TV") |> 
-  group_by(country_name, show_title) |>          
+  filter(category == "TV") |>
+  group_by(country_name, show_title) |>
   summarise(weeks = max(cumulative_weeks_in_top_10, na.rm = TRUE)) |>
-  ungroup() |> 
+  ungroup() |>
   arrange(desc(weeks)) |>
   slice(1)
 
@@ -224,7 +226,7 @@ dropped_country <- COUNTRY_TOP_10 |>
   group_by(country_name) |>
   summarise(max_week = max(week, na.rm = TRUE)) |>
   ungroup() |>
-  arrange(max_week) |> 
+  arrange(max_week) |>
   slice(1)
 
 dropped_country
@@ -235,8 +237,8 @@ The country where Netflix ceased operations the earliest is *`r dropped_country$
 ```{r}
 squid_game_viewership <- GLOBAL_TOP_10 |>
   filter(show_title == "Squid Game") |>
-  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE)) |> 
-  mutate(show_title = "Squid Game") |> 
+  summarise(total_hours = sum(weekly_hours_viewed, na.rm = TRUE)) |>
+  mutate(show_title = "Squid Game") |>
   select(show_title, total_hours)
 squid_game_viewership
 ```
@@ -246,11 +248,11 @@ The total viewership of the TV show Squid Game across all seasons is *`r round(s
 **8.The movie Red Notice has a runtime of 1 hour and 58 minutes. Approximately how many views did it receive in 2021? Note that Netflix does not provide the weekly_views values that far back in the past, but you can compute it yourself using the total view time and the runtime.**
 ```{r}
 red_notice_views_2021 <- GLOBAL_TOP_10 |>
-  filter(show_title == "Red Notice" & year(week) == 2021) |> 
-  summarise(total_views = sum(weekly_hours_viewed) / (1 + 58/60)) |> 
-  mutate(show_title = "Red Notice") |> 
+  filter(show_title == "Red Notice" & year(week) == 2021) |>
+  summarise(total_views = sum(weekly_hours_viewed) / (1 + 58 / 60)) |>
+  mutate(show_title = "Red Notice") |>
   select(show_title, total_views)
-  
+
 red_notice_views_2021
 ```
   
@@ -258,35 +260,35 @@ The movie Red Notice received approximately *`r round(red_notice_views_2021$tota
   
 **9.How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
 
-```{r}
+```{r, warning = FALSE}
 library(dplyr)
 library(stringr)
 
 # Holder
-us_films <- COUNTRY_TOP_10 |> 
+us_films <- COUNTRY_TOP_10 |>
   filter(country_name == "United States", str_starts(category, "Films")) %>%
   select(show_title, week, weekly_rank)
 head(us_films)
 
-debut <- us_films |> 
-  group_by(show_title) |> 
-  summarise(debut_week = min(week, na.rm = TRUE)) |> 
+debut <- us_films |>
+  group_by(show_title) |>
+  summarise(debut_week = min(week, na.rm = TRUE)) |>
   ungroup()
 head(debut)
 
 # get the ranks
-films_us_number1 <- us_films |> 
-  group_by(show_title) |> 
+films_us_number1 <- us_films |>
+  group_by(show_title) |>
   summarise(
     best_rank   = min(weekly_rank, na.rm = TRUE),
-    last_week_1 = max(week[weekly_rank == 1], na.rm = TRUE)) |> 
-    ungroup() |> 
-  inner_join(debut, by = "show_title") |> 
-  left_join(us_films, by = c("show_title", "debut_week" = "week")) |> 
-  rename(debut_rank = weekly_rank) |> 
-  
+    last_week_1 = max(week[weekly_rank == 1], na.rm = TRUE)
+  ) |>
+  ungroup() |>
+  inner_join(debut, by = "show_title") |>
+  left_join(us_films, by = c("show_title", "debut_week" = "week")) |>
+  rename(debut_rank = weekly_rank) |>
   # Keep films that did NOT debut at #1 but eventually hit #1
-  filter(!is.na(debut_rank), debut_rank > 1, best_rank == 1) |> 
+  filter(!is.na(debut_rank), debut_rank > 1, best_rank == 1) |>
   arrange(desc(last_week_1))
 
 films_us_number1
@@ -296,13 +298,13 @@ films_us_number1
 **10. Which TV show/season hit the top 10 in the most countries in its debut week? In how many countries did it chart?**
 
 ```{r}
-top_ten_debut <- COUNTRY_TOP_10 |> 
-  filter(category == "TV") |> 
-  group_by(show_title) |> 
-  filter(week == min(week)) |> 
-  summarise(countries = n_distinct(country_name)) |> 
-  ungroup() |> 
-  slice_max(countries, n=1)
+top_ten_debut <- COUNTRY_TOP_10 |>
+  filter(category == "TV") |>
+  group_by(show_title) |>
+  filter(week == min(week)) |>
+  summarise(countries = n_distinct(country_name)) |>
+  ungroup() |>
+  slice_max(countries, n = 1)
 
 top_ten_debut
 ```
