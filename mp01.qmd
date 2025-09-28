@@ -14,8 +14,9 @@ In this report, we will take a close look at Netflix’s global Top 10 viewershi
 In the first part of the report, by using some some Explanatory Data Analysis questions, I uncover some answers about targeted questions on Netflix most popular domestic and international programs. Those findings are then translated in press releases in the second part of report.
 
 Some key facts:
+
 - Netflix operates in more than 90 countries
-- Most of Netflix revenues are from international markets
+- Most of Netflix revenues are from international markets  
 - Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters
 - How region specific programming shows growth potential
 
