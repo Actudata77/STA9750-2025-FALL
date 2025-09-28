@@ -8,7 +8,7 @@ format:
     code-summary: "Show technical details"
 ---
 
-# Introduction
+## Introduction
 
 In this report, we will take a close look at Netflix’s global Top 10 viewership dataset. Our ultimate goal is to uncover key insights into user engagement with the platform's films and TV shows, evaluate patterns and highlights opportunities for growth.
 In the first part of the report, by using some some Explanatory Data Analysis questions, I uncover some answers about targeted questions on Netflix most popular domestic and international programs. Those findings are then translated in press releases in the second part of report.
@@ -19,7 +19,7 @@ Some key facts:
 - Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters
 - How region specific programming shows growth potential
 
-# Acquire the Data
+## Acquire the Data
 
 ```{r}
 if (!dir.exists(file.path("data", "mp01"))) {
