@@ -273,3 +273,4 @@ top_ten_debut <- COUNTRY_TOP_10 |>
 top_ten_debut
 ```
 
+The TV show that hit the top 10 in the most countries was *`r top_ten_debut$show_title`* , and it charted in *`r top_ten_debut$countries`* countries.
