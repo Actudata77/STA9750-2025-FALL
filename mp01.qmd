@@ -210,12 +210,14 @@ longest_tv_run <- COUNTRY_TOP_10 |>
   filter(category == "TV") |> 
   group_by(country_name, show_title) |> 
   summarise(longest_run = max(cumulative_weeks_in_top_10, na.rm = TRUE), .groups="drop") |> 
-  slice_max(longest_run, n = 1, with_ties = TRUE)
+  slice_max(longest_run, n = 1, with_ties = TRUE) |> 
+  format_titles() |> 
+  datatable(options = list(searching = FALSE, info = FALSE))
 
 longest_tv_run
 ```
 
-The TV show with the longest run in a country's Top 10 is *`r longest_tv_run$show_title`* in *`r longest_tv_run$country_name`* with a total of *`r longest_tv_run$weeks`* weeks.
+The TV show with the longest run in a country's Top 10 is *`r longest_tv_run$show_title`* in *`r longest_tv_run$country_name`* with a total of *`r longest_tv_run$longest_run`* weeks.
 
 **6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
