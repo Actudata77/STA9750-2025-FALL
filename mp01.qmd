@@ -287,7 +287,9 @@ films_us_number1 <- us_films |>
   rename(debut_rank = weekly_rank) |>
   # different start but eventually hit # 1
   filter(!is.na(debut_rank), debut_rank > 1, best_rank == 1) |>
-  arrange(desc(last_week_1))
+  arrange(desc(last_week_1)) |> 
+  format_titles() |> 
+  datatable(options = list(searching = FALSE, info = FALSE))
 
 films_us_number1
 ```
