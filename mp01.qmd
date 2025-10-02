@@ -10,15 +10,15 @@ format:
 
 ## Introduction
 
-In this report, we will take a close look at Netflix’s global Top 10 viewership dataset. Our ultimate goal is to uncover key insights into user engagement with the platform's films and TV shows, evaluate patterns and highlights opportunities for growth.
+In this report, we will take a close look at Netflix’s global Top 10 viewership dataset. Our ultimate goal is to uncover key insights into user engagement with the films and TV shows, evaluate patterns and highlight opportunities for growth.
 In the first part of the report, by using some some Explanatory Data Analysis questions, I uncover some answers about targeted questions on Netflix most popular domestic and international programs. Those findings are then translated in press releases in the second part of report.
 
 Some key facts:
 
-- Netflix operates in more than 90 countries
-- Most of Netflix revenues are from international markets  
-- Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters
-- How region specific programming shows growth potential
+- Netflix operates in more than 90 countries.
+- Most of Netflix revenues are from international markets.
+- Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters.
+- How local content shows growth potential.
 
 ## Acquire the Data
 
@@ -161,7 +161,7 @@ Much better!
 
 We are now ready for some Explanatory Data Analysis.
 
-# EDA
+# Exploratory Data Analysis
 
 **1. How many different countries does Netflix operate in?**
 
@@ -221,14 +221,13 @@ longest_tv_run <- COUNTRY_TOP_10 |>
   filter(category == "TV") |> 
   group_by(country_name, show_title) |> 
   summarise(longest_run = max(cumulative_weeks_in_top_10, na.rm = TRUE), .groups="drop") |> 
-  slice_max(longest_run, n = 1, with_ties = TRUE) |> 
-  format_titles() |> 
-  datatable(options = list(searching = FALSE, info = FALSE))
+  slice_max(longest_run, n = 1, with_ties = TRUE)
 
 longest_tv_run
 ```
 
 The TV show with the longest run in a country's Top 10 is *`r longest_tv_run$show_title`* in *`r longest_tv_run$country_name`* with a total of *`r longest_tv_run$longest_run`* weeks.
+
 
 **6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
@@ -330,7 +329,7 @@ The TV show that hit the top 10 in the most countries was *`r top_ten_debut$show
 
 ### Stranger Things: A Global Phenomenon Returns for Final Season
 
-According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons , this sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater staying power: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European like Belgium and France. It also showed resounding success in African countries like Kenya and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by the record-breaking Squid Game. With nearly 3 billion hours viewed worldwide, exictement for the last season is huge.
+According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons. This sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European countries like Belgium and France. It also showed  success in African countries like Kenya and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by Squid Game. With nearly 3 billion hours viewed worldwide, excitement for the last season is huge.
 
 ## Press Release 2:
 
@@ -357,16 +356,23 @@ local_indian_hits <- india_hits |>
 local_indian_hits
 ```
 
-"The Great Indian Kapil Show" remained in the India's Top 10 for 43 weeks, outperforming other international competitors. In the meantime ,several of the most successful domestic TV shows and Films have never appeared in the US Top 10, underscoring the value of programming specific to different regions in the world. With Netflix counting a lot on the success of international markets, India remains a key driver of the company's success at the international level.As Netflix continue to rely on international market, these results reaffirm the platform continued investment in India.
+"The Great Indian Kapil Show" remained in the India's Top 10 for 43 weeks, outperforming other international competitors. In the meantime ,several of the most successful domestic TV shows and Films have never appeared in the US Top 10. This demonstrates the value of programming specific to different regions in the world. With Netflix counting a lot on the success of international markets, India remains a key driver of the company's success at the international level.As Netflix continue to rely on international market, these results reaffirm the platform continued investment in India.
 
 ## Press Release 3
 
-### Netflix Announces New Africa Originals Hub in Nigeria to Amplify Local Storytelling for Global Audiences
+### Netflix Announces New Africa Originals Hub in Nigeria 
 
-Nigeria, home to Africa’s largest film industry (Nollywood) and a booming youth demographic is at the center of a global creative renaissance. With more than 60% of its population under the age of 30, Nigeria represents one of the youngest, most dynamic entertainment markets in the world. This digitally savvy generation is driving rapid growth in streaming consumption, both within Africa and abroad.
+Nigeria is the most populous African country and home to Africa’s largest film industry (Nollywood) with a booming youth demographic. With more than 60% of its population under the age of 30, Nigeria represents one of the youngest, most dynamic entertainment markets in the world. The new generation generation, more tech savvy,is driving rapid growth both within Africa and abroad.
 
-In recent years, African productions such as Queen Sono (South Africa), Aníkúlápó (Nigeria), and Blood & Water (South Africa) have achieved strong engagement, demonstrating the rising demand for African storytelling. Viewership data shows that Netflix members outside Africa are increasingly turning to African films and series, with growth in hours viewed nearly doubling year-over-year.
+In recent years, African productions such as Queen Sono (South Africa), Aníkúlápó (Nigeria), and Blood & Water (South Africa) have achieved strong engagement, demonstrating the rising demand for African storytelling. Data on viewership shows that Netflix members outside Africa are turning more and more to African films and series, with growth in hours viewed nearly doubling year over year.
 
-“Our goal is simple: to help Africa’s incredible storytellers share their voices with the world,” said [Executive Name], Vice President of Content for EMEA at Netflix. “Nigeria’s young, creative, and connected population is shaping the future of global storytelling, and we are proud to be investing where the next wave of cultural influence begins.
-This initiative underscores Netflix’s long-term commitment to Africa as both a source of creative innovation and a rapidly growing subscriber market, anchored by Nigeria’s youth-driven demand for authentic storytelling.
+“Our goal is simple: to help Africa’s incredible storytellers share their voices with the world,” said Ted Sarandos, Co-CEO of Netflix. “Nigeria’s young, creative, and connected population is shaping the future of global storytelling, and we are proud to be investing where the next wave of cultural influence begins.
+This initiative emphasizes Netflix’s long-term commitment to Africa as both a source of creative innovation and a fast growing market, anchored by Nigeria’s youth-driven demand for excellent storytelling.
+
+
+
+
+
+
+
 
