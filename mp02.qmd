@@ -276,3 +276,21 @@ WAGES <- get_bls_qcew_annual_averages()
 ```
 
 ## Data Integration and Initial Exploration
+
+
+
+
+## Extra Credit Opportunity #01: Relationship Diagram
+
+The diagram below summarizes the structure of the datasets used in this project and the relationships among them.
+
+![](images/diagram.png){width="90%" fig-align="center"}
+
+Each dataset contributes different dimensions of housing affordability:
+- **ACS tables (INCOME, RENT, POPULATION, HOUSEHOLDS):** socioeconomic and demographic indicators by metro area and year.  
+- **PERMITS:** new housing construction activity (supply side).  
+- **WAGES:** employment and wage trends by industry and region.  
+- **INDUSTRY_CODES:** lookup table mapping industry codes to descriptive titles.  
+
+Together, these relationships allow analysis of how income, rent, and housing supply interact across metropolitan areas over time.
+
