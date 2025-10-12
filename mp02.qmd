@@ -7,6 +7,8 @@ format:
     toc-title: "Contents"
     number-sections: true
     theme: materia
+    code-fold: true
+    code-summary: "Show technical details"
 ---
 
 
