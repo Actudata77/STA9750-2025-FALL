@@ -1,0 +1,13 @@
+---
+title: "Mini Project 2: Making Backyards Affordable for All"
+author: "Hyacinthe Sarr"
+format:
+  html:
+    toc: true
+    toc-title: "Contents"
+    number-sections: true
+    theme: sandstone
+---
+
+
+## Introduction
