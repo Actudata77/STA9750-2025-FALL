@@ -1,7 +1,6 @@
 ---
 title: "Mini Project 01: Exploring the Most Popular Programming on Netflix"
 author: "Hyacinthe Sarr"
-date: "`r format(Sys.Date(), '%B %d, %Y')`"
 format:
   html:
     code-fold: true
