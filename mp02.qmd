@@ -33,7 +33,7 @@ format:
 
 
 ```{r}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 #| code-fold: true
