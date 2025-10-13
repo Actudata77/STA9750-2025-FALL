@@ -11,8 +11,7 @@ format:
     code-summary: "Show technical details"
 ---
 
-![](images/pic.png){width="90%" fig-align="center"}
-
+![](images/pic2.png){width="100%" fig-align="center"}
 ## Introduction
 
 
