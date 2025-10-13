@@ -284,7 +284,7 @@ WAGES <- get_bls_qcew_annual_averages()
 
 The diagram below summarizes the structure of the datasets used in this project and the relationships among them.
 
-![](images/diagram.png){width="90%" fig-align="center"}
+![](D:/OneDrive/9750/STA9750-2025-FALL/images/diagram.png){width="90%" fig-align="center"}
 
 Each dataset contributes different dimensions of housing affordability:
 - **ACS tables (INCOME, RENT, POPULATION, HOUSEHOLDS):** socioeconomic and demographic indicators by metro area and year.  
