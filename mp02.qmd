@@ -294,3 +294,4 @@ Each dataset contributes different dimensions of housing affordability:
 
 Together, these relationships allow analysis of how income, rent, and housing supply interact across metropolitan areas over time.
 
+
