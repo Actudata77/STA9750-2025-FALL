@@ -167,6 +167,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/pic.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+</figure>
+</div>
 <section id="introduction" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> Introduction</h2>
 </section>
@@ -420,14 +425,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The diagram below summarizes the structure of the datasets used in this project and the relationships among them.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="images/diagram.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+<p><img src="images/diagram2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
 </figure>
 </div>
-<p>Each dataset contributes different dimensions of housing affordability: - <strong>ACS tables (INCOME, RENT, POPULATION, HOUSEHOLDS):</strong> socioeconomic and demographic indicators by metro area and year.<br>
-- <strong>PERMITS:</strong> new housing construction activity (supply side).<br>
-- <strong>WAGES:</strong> employment and wage trends by industry and region.<br>
-- <strong>INDUSTRY_CODES:</strong> lookup table mapping industry codes to descriptive titles.</p>
-<p>Together, these relationships allow analysis of how income, rent, and housing supply interact across metropolitan areas over time.</p>
+<p>Each dataset in this project represents a distinct source of information related to housing affordability, and the diagram above shows the logical connections among them.</p>
+<ul>
+<li><p><strong>ACS Tables — INCOME, RENT, POPULATION, and HOUSEHOLDS:</strong><br>
+These datasets share the geographic identifier <code>GEOID</code> and the variable <code>year</code>.<br>
+These common keys allow one-to-one joins, aligning indicators such as median household income, monthly rent, population size, and number of households for each metropolitan area and each year.</p></li>
+<li><p><strong>PERMITS (Building Permits Survey):</strong><br>
+Uses the <code>CBSA</code> code to identify the same metropolitan areas.<br>
+While <code>CBSA</code> and <code>GEOID</code> are not identical, they represent equivalent regional boundaries and can be cross-referenced to connect new housing construction data with ACS demographic measures.</p></li>
+<li><p><strong>WAGES (Bureau of Labor Statistics):</strong><br>
+Uses the <code>FIPS</code> code to identify regions and includes variables for total employment, total wages, and average annual wage by industry (<code>INDUSTRY</code>).<br>
+Each <code>INDUSTRY</code> code link has a detailed description in the <strong>INDUSTRY_CODES</strong> table.</p></li>
+<li><p><strong>INDUSTRY_CODES (Lookup Table):</strong><br>
+Provides hierarchical industry classification labels that map the numeric codes in the WAGES dataset to descriptive names.</p></li>
+</ul>
+<p>Put together, all these relationships show how multiple data sources with different identifiers (<code>GEOID</code>, <code>CBSA</code>, <code>FIPS</code>) and time references (<code>year</code>) can be integrated.<br>
+Although the data are not fully normalized—some relationships, we have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.</p>
 
 
 </section>

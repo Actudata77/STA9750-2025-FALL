@@ -11,15 +11,9 @@ format:
     code-summary: "Show technical details"
 ---
 
+![](images/pic.png){width="90%" fig-align="center"}
 
 ## Introduction
-
-
-
-
-
-
-
 
 
 
@@ -284,14 +278,26 @@ WAGES <- get_bls_qcew_annual_averages()
 
 The diagram below summarizes the structure of the datasets used in this project and the relationships among them.
 
-![](D:/OneDrive/9750/STA9750-2025-FALL/images/diagram.png){width="90%" fig-align="center"}
+![](images/diagram2.png){width="90%" fig-align="center"}
 
-Each dataset contributes different dimensions of housing affordability:
-- **ACS tables (INCOME, RENT, POPULATION, HOUSEHOLDS):** socioeconomic and demographic indicators by metro area and year.  
-- **PERMITS:** new housing construction activity (supply side).  
-- **WAGES:** employment and wage trends by industry and region.  
-- **INDUSTRY_CODES:** lookup table mapping industry codes to descriptive titles.  
+Each dataset in this project represents a distinct source of information related to housing affordability, and the diagram above shows the logical connections among them.
 
-Together, these relationships allow analysis of how income, rent, and housing supply interact across metropolitan areas over time.
+- **ACS Tables — INCOME, RENT, POPULATION, and HOUSEHOLDS:**  
+  These datasets share the geographic identifier `GEOID` and the variable `year`.  
+  These common keys allow one-to-one joins, aligning indicators such as median household income, monthly rent, population size, and number of households for each metropolitan area and each year.
+
+- **PERMITS (Building Permits Survey):**  
+  Uses the `CBSA` code to identify the same metropolitan areas.  
+  While `CBSA` and `GEOID` are not identical, they represent equivalent regional boundaries and can be cross-referenced to connect new housing construction data with ACS demographic measures.
+
+- **WAGES (Bureau of Labor Statistics):**  
+  Uses the `FIPS` code to identify regions and includes variables for total employment, total wages, and average annual wage by industry (`INDUSTRY`).  
+  Each `INDUSTRY` code link has a detailed description in the **INDUSTRY_CODES** table.
+
+- **INDUSTRY_CODES (Lookup Table):**  
+  Provides hierarchical industry classification labels that map the numeric codes in the WAGES dataset to descriptive names.
+
+Put together, all these relationships show how multiple data sources with different identifiers (`GEOID`, `CBSA`, `FIPS`) and time references (`year`) can be integrated.  
+Although the data are not fully normalized—some relationships, we have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.
 
 

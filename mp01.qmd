@@ -9,15 +9,14 @@ format:
 
 ## Introduction
 
-In this report, we will take a close look at Netflix’s global Top 10 viewership dataset. Our ultimate goal is to uncover key insights into user engagement with the films and TV shows, evaluate patterns and highlight opportunities for growth.
-In the first part of the report, by using some some Explanatory Data Analysis questions, I uncover some answers about targeted questions on Netflix most popular domestic and international programs. Those findings are then translated in press releases in the second part of report.
+In this report, we will take a close look at Netflix’s global Top 10 viewership dataset. Our ultimate goal is to uncover key insights into user engagement with the films and TV shows, evaluate patterns and highlight opportunities for growth. In the first part of the report, by using some some Explanatory Data Analysis questions, I uncover some answers about targeted questions on Netflix most popular domestic and international programs. Those findings are then translated in press releases in the second part of report.
 
 Some key facts:
 
-- Netflix operates in more than 90 countries.
-- Most of Netflix revenues are from international markets.
-- Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters.
-- How local content shows growth potential.
+-   Netflix operates in more than 90 countries.
+-   Most of Netflix revenues are from international markets.
+-   Global impact of programs such as Squid Game, Stranger Things and KPop Demon Hunters.
+-   How local content shows growth potential.
 
 ## Acquire the Data
 
@@ -42,7 +41,6 @@ if (!file.exists(COUNTRY_TOP_10_FILENAME)) {
   )
 }
 ```
-
 
 ```{r}
 if (!require("tidyverse")) install.packages("tidyverse")
@@ -90,9 +88,10 @@ Let's now confirm that the missing values are properly formatted for R.
 ```{r}
 str(GLOBAL_TOP_10)
 ```
-Great, let's turn to our second dataset that we will use. 
 
-##  Data Import for the Country Top 10 dataset
+Great, let's turn to our second dataset that we will use.
+
+## Data Import for the Country Top 10 dataset
 
 ```{r}
 COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
@@ -100,9 +99,11 @@ COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
 
 glimpse(COUNTRY_TOP_10)
 ```
+
 We handle the missing values straight in the import phase in the `read_tsv`. We can see that missing values are format the way R wants it to.
 
 After viewing the head and tail of the data, we want to just gain better sense of the data. For that let's chose a random number of rows other than the head or tail of the data by using the sample function to select random rows.
+
 ```{r}
 GLOBAL_TOP_10[sample(nrow(GLOBAL_TOP_10), 10), ]
 ```
@@ -116,8 +117,7 @@ GLOBAL_TOP_10 |>
   datatable(options = list(searching = FALSE, info = FALSE))
 ```
 
-The column names such as `weekly_hours_viewed` are not properly formatted. Large numbers in that column are also not presented with commas.
-Let's fix that!
+The column names such as `weekly_hours_viewed` are not properly formatted. Large numbers in that column are also not presented with commas. Let's fix that!
 
 ```{r}
 library(stringr)
@@ -132,6 +132,7 @@ GLOBAL_TOP_10 |>
   datatable(options = list(searching = FALSE, info = FALSE)) |>
   formatRound(c("Weekly Hours Viewed", "Weekly Views"))
 ```
+
 We can now drop the `season_title` since here we are only showing films.
 
 ```{r}
@@ -142,6 +143,7 @@ GLOBAL_TOP_10 |>
   datatable(options = list(searching = FALSE, info = FALSE)) |>
   formatRound(c("Weekly Hours Viewed", "Weekly Views"))
 ```
+
 Finally, let's convert `Runtime` to minutes
 
 ```{r}
@@ -156,6 +158,7 @@ GLOBAL_TOP_10 |>
   datatable(options = list(searching = FALSE, info = FALSE)) |>
   formatRound(c("Weekly Hours Viewed", "Weekly Views"))
 ```
+
 Much better!
 
 We are now ready for some Explanatory Data Analysis.
@@ -168,10 +171,11 @@ We are now ready for some Explanatory Data Analysis.
 countries <- COUNTRY_TOP_10 |>
   summarise(num_countries = n_distinct(country_name))
 ```
-  
-Netflix operates in *`r countries$num_countries`* countries.  
+
+Netflix operates in *`r countries$num_countries`* countries.
 
 **2. Which non-English-language film has spent the most cumulative weeks in the global top 10?**
+
 ```{r}
 top_non_english <- GLOBAL_TOP_10 |>
   filter(category == "Films (Non-English)") |>
@@ -184,8 +188,8 @@ top_non_english
 
 The non-English film with the most cumulative weeks in the global top 10 is *`r top_non_english$show_title`* with *`r top_non_english$cumulative_weeks_in_top_10`* weeks.
 
-
 **3. What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
+
 ```{r}
 longest_film_in_minutes <- GLOBAL_TOP_10 |>
   filter(category == "Films (English)" | category == "Films (Non-English)") |>
@@ -213,6 +217,7 @@ most_viewed_program <- GLOBAL_TOP_10 |>
   formatRound(c("Total Hours Viewed"))
 most_viewed_program
 ```
+
 **5. Which TV show had the longest run in a country’s Top 10? How long was this run and in what country did it occur?**
 
 ```{r}
@@ -227,7 +232,6 @@ longest_tv_run
 
 The TV show with the longest run in a country's Top 10 is *`r longest_tv_run$show_title`* in *`r longest_tv_run$country_name`* with a total of *`r longest_tv_run$longest_run`* weeks.
 
-
 **6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
 ```{r}
@@ -240,9 +244,11 @@ dropped_country <- COUNTRY_TOP_10 |>
 
 dropped_country
 ```
+
 The country where Netflix ceased operations the earliest is *`r dropped_country$country_name`* in the week of *`r dropped_country$max_week`*.
 
 **7.What is the total viewership of the TV show Squid Game? Note that there are three seasons total and we are looking for the total number of hours watched across all seasons.**
+
 ```{r}
 squid_game_viewership <- GLOBAL_TOP_10 |>
   filter(show_title == "Squid Game") |>
@@ -251,11 +257,11 @@ squid_game_viewership <- GLOBAL_TOP_10 |>
   select(show_title, total_hours)
 squid_game_viewership
 ```
+
 The total viewership of the TV show *Squid Game* across all seasons is `r scales::comma(squid_game_viewership$total_hours)` hours.
 
-
-
 **8.The movie Red Notice has a runtime of 1 hour and 58 minutes. Approximately how many views did it receive in 2021? Note that Netflix does not provide the weekly_views values that far back in the past, but you can compute it yourself using the total view time and the runtime.**
+
 ```{r}
 red_notice_views_2021 <- GLOBAL_TOP_10 |>
   filter(show_title == "Red Notice" & year(week) == 2021) |>
@@ -265,9 +271,9 @@ red_notice_views_2021 <- GLOBAL_TOP_10 |>
 
 red_notice_views_2021
 ```
-  
+
 The movie Red Notice received approximately *`r scales::comma(red_notice_views_2021$total_views)`* views in 2021.
-  
+
 **9.How many Films reached Number 1 in the US but did not originally debut there? That is, find films that first appeared on the Top 10 chart at, e.g., Number 4 but then became more popular and eventually hit Number 1? What is the most recent film to pull this off?**
 
 ```{r, warning = FALSE}
@@ -304,7 +310,6 @@ films_us_number1 <- us_films |>
 films_us_number1
 ```
 
-
 **10. Which TV show/season hit the top 10 in the most countries in its debut week? In how many countries did it chart?**
 
 ```{r}
@@ -323,18 +328,18 @@ The TV show that hit the top 10 in the most countries was *`r top_ten_debut$show
 
 # Press Releases
 
-
-## Press Release 1: 
+## Press Release 1:
 
 ### Stranger Things: A Global Phenomenon Returns for Final Season
 
-According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons. This sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European countries like Belgium and France. It also showed  success in African countries like Kenya and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by Squid Game. With nearly 3 billion hours viewed worldwide, excitement for the last season is huge.
+According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons. This sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European countries like Belgium and France. It also showed success in African countries like Kenya and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by Squid Game. With nearly 3 billion hours viewed worldwide, excitement for the last season is huge.
 
 ## Press Release 2:
 
 ### Netflix breakthrough in India
 
 India is the world most populated country and has quickly become on of Netflix fastest growing market. TV shows and films in Hindi language continue their dominance in the country's top 10.Local TV and shows have stayed in the country's top 10 for numerous weeks. This prove the show broadest appeal to the domestic audience.
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 india_hits <- COUNTRY_TOP_10 |>
@@ -359,21 +364,14 @@ local_indian_hits
 
 ## Press Release 3
 
-### Netflix Announces New Africa Originals Hub in Nigeria 
+### Netflix Announces New Africa Originals Hub in Nigeria
 
 Nigeria is the most populous African country and home to Africa’s largest film industry (Nollywood) with a booming youth demographic. With more than 60% of its population under the age of 30, Nigeria represents one of the youngest, most dynamic entertainment markets in the world. The new generation generation, more tech savvy,is driving rapid growth both within Africa and abroad.
 
 In recent years, African productions such as Queen Sono (South Africa), Aníkúlápó (Nigeria), and Blood & Water (South Africa) have achieved strong engagement, demonstrating the rising demand for African storytelling. Data on viewership shows that Netflix members outside Africa are turning more and more to African films and series, with growth in hours viewed nearly doubling year over year.
 
-“Our goal is simple: to help Africa’s incredible storytellers share their voices with the world,” said Ted Sarandos, Co-CEO of Netflix. “Nigeria’s young, creative, and connected population is shaping the future of global storytelling, and we are proud to be investing where the next wave of cultural influence begins.
-This initiative emphasizes Netflix’s long-term commitment to Africa as both a source of creative innovation and a fast growing market, anchored by Nigeria’s youth-driven demand for excellent storytelling.
-
+“Our goal is simple: to help Africa’s incredible storytellers share their voices with the world,” said Ted Sarandos, Co-CEO of Netflix. “Nigeria’s young, creative, and connected population is shaping the future of global storytelling, and we are proud to be investing where the next wave of cultural influence begins. This initiative emphasizes Netflix’s long-term commitment to Africa as both a source of creative innovation and a fast growing market, anchored by Nigeria’s youth-driven demand for excellent storytelling.
 
 ## Conclusion
 
 Netflix’s Top 10 data reveals a balance between global blockbusters and the rise of local storytelling. While hits like Stranger Things and Squid Game dominate worldwide, markets such as India and Nigeria show how regional content and young audiences are shaping the future for Netflix. Together, these trends show Netflix’s dual strategy: continue to invest in global hits while also strengthening local productions for a sustained growth in diverse markets.
-
-
-
-
-
