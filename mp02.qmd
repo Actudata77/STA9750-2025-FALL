@@ -312,7 +312,6 @@ largest_cbsa <- PERMITS %>%
   left_join(HOUSEHOLDS, by = c("CBSA" = "GEOID")) %>%
   slice(1) %>%
   select(NAME, total_permits)
-largest_cbsa
 
 highlight <- function(x) {
   paste0('<span style="color: red;"><b>', x, '</b></span>')
