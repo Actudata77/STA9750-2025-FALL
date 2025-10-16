@@ -323,13 +323,13 @@ The CBSA that permitted the largest number of new housing units in the decade fr
 **2.In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?**
 
 ```{r}
-  PERMITS %>%
+  housing_permits<- PERMITS %>%
     filter(CBSA == 10740) %>%
     arrange(desc(new_housing_units_permitted)) %>%
     slice(1) %>%
     select(year, new_housing_units_permitted)
 ```
-
+Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year of `r highlight(housing_permits$year)`, for a total of `r highlight(housing_permits$new_housing_units_permitted)`
 
 **3.Which state (not CBSA) had the highest average individual income in 2015? To answer this question, you will need to first compute the total income per CBSA by multiplying the average household income by the number of households, and then sum total income and total population across all CBSAs in a state. With these numbers, you can answer this question.**
 
