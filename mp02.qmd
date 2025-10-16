@@ -273,7 +273,7 @@ WAGES <- get_bls_qcew_annual_averages()
 
 
 
-## Extra Credit Opportunity #01: Relationship Diagram
+### Extra Credit Opportunity #01: Relationship Diagram
 
 The diagram below summarizes the structure of the datasets used in this project and the relationships among them.
 
