@@ -299,4 +299,55 @@ Each dataset in this project represents a distinct source of information related
 Put together, all these relationships show how multiple data sources with different identifiers (`GEOID`, `CBSA`, `FIPS`) and time references (`year`) can be integrated.  
 Although the data are not fully normalized—some relationships, we have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.
 
+## Multi-Table Questions
 
+**1.Which CBSA (by name) permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive)?**
+
+```{r}
+largest_cbsa <- PERMITS %>%
+  filter(year >= 2010 & year <= 2019) %>%
+  group_by(CBSA) %>%
+  summarize(total_permits = sum(new_housing_units_permitted, na.rm = TRUE)) %>%
+  arrange(desc(total_permits)) %>%
+  left_join(HOUSEHOLDS, by = c("CBSA" = "GEOID")) %>%
+  slice(1) %>%
+  select(NAME, total_permits)
+largest_cbsa
+
+highlight <- function(x) {
+  paste0('<span style="color: red;"><b>', x, '</b></span>')
+}
+```
+
+The CBSA that permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive) is `r highlight(largest_cbsa$NAME)`, which permitted `r highlight(largest_cbsa$total_permits)` new housing units.
+
+**2.In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?**
+
+```{r}
+  PERMITS %>%
+    filter(CBSA == 10740) %>%
+    arrange(desc(new_housing_units_permitted)) %>%
+    slice(1) %>%
+    select(year, new_housing_units_permitted)
+```
+
+
+**3.Which state (not CBSA) had the highest average individual income in 2015? To answer this question, you will need to first compute the total income per CBSA by multiplying the average household income by the number of households, and then sum total income and total population across all CBSAs in a state. With these numbers, you can answer this question.**
+
+```{r}
+   library(stringr)
+  
+  INCOME %>%
+    filter(year == 2015) %>%
+    mutate(state = str_extract(NAME, "., ([A-Z]{2})", group = 1)) %>%
+    left_join(HOUSEHOLDS %>% filter(year == 2015) %>% select(GEOID, households), 
+              by = "GEOID") %>%
+    mutate(total_income = household_income * households) %>%
+    group_by(state) %>%
+    summarize(total_income = sum(total_income, na.rm = TRUE),
+              total_households = sum(households, na.rm = TRUE)) %>%
+    mutate(avg_individual_income = total_income / total_households) %>%
+    arrange(desc(avg_individual_income)) %>%
+    slice(1) %>%
+    select(state, avg_individual_income)
+```

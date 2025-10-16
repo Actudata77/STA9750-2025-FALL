@@ -137,6 +137,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#extra-credit-opportunity-01-relationship-diagram" id="toc-extra-credit-opportunity-01-relationship-diagram" class="nav-link" data-scroll-target="#extra-credit-opportunity-01-relationship-diagram"><span class="header-section-number">2.1</span> Extra Credit Opportunity #01: Relationship Diagram</a></li>
   </ul></li>
+  <li><a href="#multi-table-questions" id="toc-multi-table-questions" class="nav-link" data-scroll-target="#multi-table-questions"><span class="header-section-number">3</span> Multi-Table Questions</a></li>
   </ul>
 </nav>
     </div>
@@ -437,9 +438,84 @@ Provides hierarchical industry classification labels that map the numeric codes 
 </ul>
 <p>Put together, all these relationships show how multiple data sources with different identifiers (<code>GEOID</code>, <code>CBSA</code>, <code>FIPS</code>) and time references (<code>year</code>) can be integrated.<br>
 Although the data are not fully normalized—some relationships, we have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.</p>
-
-
 </section>
+</section>
+<section id="multi-table-questions" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="multi-table-questions"><span class="header-section-number">3</span> Multi-Table Questions</h2>
+<p><strong>1.Which CBSA (by name) permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive)?</strong></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show technical details</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>largest_cbsa <span class="ot">&lt;-</span> PERMITS <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;=</span> <span class="dv">2010</span> <span class="sc">&amp;</span> year <span class="sc">&lt;=</span> <span class="dv">2019</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(CBSA) <span class="sc">%&gt;%</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_permits =</span> <span class="fu">sum</span>(new_housing_units_permitted, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(total_permits)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(HOUSEHOLDS, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"CBSA"</span> <span class="ot">=</span> <span class="st">"GEOID"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(NAME, total_permits)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>largest_cbsa</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+  NAME                                      total_permits
+  &lt;chr&gt;                                             &lt;dbl&gt;
+1 Houston-Sugar Land-Baytown, TX Metro Area        482075</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show technical details</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>highlight <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">'&lt;span style="color: red;"&gt;&lt;b&gt;'</span>, x, <span class="st">'&lt;/b&gt;&lt;/span&gt;'</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>The CBSA that permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive) is <span style="color: red;"><b>Houston-Sugar Land-Baytown, TX Metro Area</b></span>, which permitted <span style="color: red;"><b>482075</b></span> new housing units.</p>
+<p><strong>2.In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?</strong></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show technical details</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  PERMITS <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(CBSA <span class="sc">==</span> <span class="dv">10740</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(new_housing_units_permitted)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(year, new_housing_units_permitted)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+   year new_housing_units_permitted
+  &lt;dbl&gt;                       &lt;dbl&gt;
+1  2021                        4021</code></pre>
+</div>
+</div>
+<p><strong>3.Which state (not CBSA) had the highest average individual income in 2015? To answer this question, you will need to first compute the total income per CBSA by multiplying the average household income by the number of households, and then sum total income and total population across all CBSAs in a state. With these numbers, you can answer this question.</strong></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show technical details</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>   <span class="fu">library</span>(stringr)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  INCOME <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2015</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">state =</span> <span class="fu">str_extract</span>(NAME, <span class="st">"., ([A-Z]{2})"</span>, <span class="at">group =</span> <span class="dv">1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(HOUSEHOLDS <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2015</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(GEOID, households), </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">by =</span> <span class="st">"GEOID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">total_income =</span> household_income <span class="sc">*</span> households) <span class="sc">%&gt;%</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(state) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">total_income =</span> <span class="fu">sum</span>(total_income, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">total_households =</span> <span class="fu">sum</span>(households, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">avg_individual_income =</span> total_income <span class="sc">/</span> total_households) <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(avg_individual_income)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(state, avg_individual_income)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+  state avg_individual_income
+  &lt;chr&gt;                 &lt;dbl&gt;
+1 DC                    93294</code></pre>
+</div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->
