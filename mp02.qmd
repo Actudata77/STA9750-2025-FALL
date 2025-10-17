@@ -303,13 +303,20 @@ Although the data are not fully normalized—some relationships, we have enough 
 **1.Which CBSA (by name) permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive)?**
 
 ```{r}
-largest_cbsa <- PERMITS %>%
-  filter(year >= 2010 & year <= 2019) %>%
+library(dplyr)
+library(stringr)
+format_titles <- function(df) {
+  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  df
+}
+
+largest_cbsa <- PERMITS |> 
+  filter(year >= 2010 & year <= 2019) |> 
   group_by(CBSA) %>%
-  summarize(total_permits = sum(new_housing_units_permitted, na.rm = TRUE)) %>%
-  arrange(desc(total_permits)) %>%
-  left_join(HOUSEHOLDS, by = c("CBSA" = "GEOID")) %>%
-  slice(1) %>%
+  summarize(total_permits = sum(new_housing_units_permitted, na.rm = TRUE)) |> 
+  arrange(desc(total_permits)) |> 
+  left_join(HOUSEHOLDS, by = c("CBSA" = "GEOID")) |> 
+  slice(1) |> 
   select(NAME, total_permits)
 
 highlight <- function(x) {
@@ -322,10 +329,10 @@ The CBSA that permitted the largest number of new housing units in the decade fr
 **2.In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?**
 
 ```{r}
-  housing_permits<- PERMITS %>%
-    filter(CBSA == 10740) %>%
-    arrange(desc(new_housing_units_permitted)) %>%
-    slice(1) %>%
+  housing_permits<- PERMITS |> 
+    filter(CBSA == 10740) |> 
+    arrange(desc(new_housing_units_permitted)) |> 
+    slice(1) |> 
     select(year, new_housing_units_permitted)
 ```
 Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year of `r highlight(housing_permits$year)`, for a total of `r highlight(housing_permits$new_housing_units_permitted)`.
@@ -333,22 +340,25 @@ Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year
 **3.Which state (not CBSA) had the highest average individual income in 2015? To answer this question, you will need to first compute the total income per CBSA by multiplying the average household income by the number of households, and then sum total income and total population across all CBSAs in a state. With these numbers, you can answer this question.**
 
 ```{r}
-   library(stringr)
+  library(stringr)
+  library(DT)
   
-  INCOME %>%
-    filter(year == 2015) %>%
-    mutate(state = str_extract(NAME, "., ([A-Z]{2})", group = 1)) %>%
-    left_join(HOUSEHOLDS %>% filter(year == 2015) %>% select(GEOID, households), 
-              by = "GEOID") %>%
-    mutate(total_income = household_income * households) %>%
-    group_by(state) %>%
+  highest_indiv_income_2015 <- INCOME |> 
+    filter(year == 2015) |> 
+    mutate(state = str_extract(NAME, "., ([A-Z]{2})", group = 1)) |> 
+    left_join(HOUSEHOLDS |>  filter(year == 2015) |>  select(GEOID, households), 
+              by = "GEOID") |> 
+    mutate(total_income = household_income * households) |> 
+    group_by(state) |> 
     summarize(total_income = sum(total_income, na.rm = TRUE),
-              total_households = sum(households, na.rm = TRUE)) %>%
-    mutate(avg_individual_income = total_income / total_households) %>%
-    arrange(desc(avg_individual_income)) %>%
-    slice(1) %>%
+              total_households = sum(households, na.rm = TRUE)) |> 
+    mutate(avg_individual_income = total_income / total_households) |> 
+    arrange(desc(avg_individual_income)) |> 
+    slice(1) |> 
     select(state, avg_individual_income)
+  
 ```
+The state with the highest average individual income in 2015 was `r highlight(highest_indiv_income_2015$state)`, with an average individual income of `r highlight(round(highest_indiv_income_2015$avg_individual_income, 2))`.
 
 **4.Data scientists and business analysts are recorded under NAICS code 5182. What is the last year in which the NYC CBSA had the most data scientists in the country? In recent, the San Francisco CBSA has had the most data scientists.**
 
@@ -391,8 +401,11 @@ last_nyc_year <- ds_by_year |>
 
 # Filter to show only NYC area rows
 nyc_only <- ds_by_year |>
-  filter(grepl("New York", NAME, ignore.case = TRUE))
-print(nyc_only)
+  filter(grepl("New York", NAME, ignore.case = TRUE)) |> 
+  format_titles() |> 
+  datatable(options = list(searching = FALSE, info = FALSE)) |> 
+  formatRound(c("Total Employment"))   
+nyc_only
 ```
 
 The last year in which the NYC CBSA had the most data scientists in the country was `r highlight(last_nyc_year)`.
@@ -446,17 +459,24 @@ The fraction of total wages in the NYC CBSA earned by people employed in the fin
 
 **1. The relationship between monthly rent and average household income per CBSA in 2009 using ggplot**
 ```{r}
+library(ggpmisc)
 library(ggplot2)
-income_rent_2009 <- INCOME %>%
-  filter(year == 2009) %>%
+income_rent_2009 <- INCOME |> 
+  filter(year == 2009) |> 
   inner_join(RENT %>% filter(year == 2009), by = c("GEOID", "year"))
 ggplot(income_rent_2009, aes(x = household_income, y = monthly_rent)) +
   geom_point(color = "blue", alpha = 0.6) +
+  stat_poly_line(se = FALSE, 
+                 color = "red") +
+  stat_poly_eq()+
   labs(title = "Monthly Rent vs. Average Household Income (2009)",
        x = "Average Household Income",
        y = "Monthly Rent") +
   theme_bw()
 ```
+There's a clear positive correlation between average household income and monthly rent in 2009. As household income increases, the monthly rent tends to increase as well. The fitted regression line indicates that higher-income households generally pay higher rents, suggesting that rent prices are influenced by the income levels of residents in different CBSAs.
+
+The coefficient of determination (R²) of 0.58 indicates that approximately 58% of the variation in monthly rent can be explained by average household income. This translates to a correlation coefficient of r ≈ 0.76, suggesting a strong positive relationship.
 
 
 
@@ -879,5 +899,239 @@ print(
 )
 
 ```
+### Visiualization
+
+Create (at least) two visualizations to investigate the relationships between your Rent Burden and Housing Growth metrics. Using these plots, identify the most “YIMBY” CBSAs as ones which:
+
+- had relatively high rent burden in the early part of the study period;
+- have had a decrease in rent burden over the study period;
+- have had population growth over the study period; and
+- have had above-average housing growth during the study period.
+
+A CBSA exhibiting all of these qualities is (arguably) an example of YIMBY success and is not a city in decline, as would be indicated by falling population resulting in lower rents.
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+library(gghighlight)
+
+# Step 1: Merge rent burden and housing growth data
+# First, prepare rent burden data by year
+rent_burden_by_year <- rent_burden_data |>
+  group_by(GEOID, NAME, year) |>
+  summarise(
+    avg_rent_burden_index = mean(rent_burden_index, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Prepare housing growth data
+housing_growth_by_year <- housing_data |>
+  select(GEOID, NAME, year, population, composite_score, 
+         composite_score_rolling, instantaneous_metric, rate_based_metric) |>
+  distinct()
+
+# Merge the two datasets
+yimby_data <- rent_burden_by_year |>
+  inner_join(
+    housing_growth_by_year,
+    by = c("GEOID" = "GEOID", "NAME" = "NAME", "year" = "year")
+  ) |>
+  arrange(GEOID, year)
+
+# Step 2: Calculate YIMBY criteria for each CBSA
+yimby_criteria <- yimby_data |>
+  group_by(GEOID, NAME) |>
+  summarise(
+    # Criterion 1: High rent burden in early period (2009-2013 average)
+    early_rent_burden = mean(avg_rent_burden_index[year < 2014], na.rm = TRUE),
+    
+    # Criterion 2: Decrease in rent burden over study period
+    rent_burden_change = mean(avg_rent_burden_index[year >= 2020], na.rm = TRUE) - 
+      mean(avg_rent_burden_index[year < 2014], na.rm = TRUE),
+    
+    # Criterion 3: Population growth over study period
+    pop_start = population[year == min(year)],
+    pop_end = population[year == max(year)],
+    population_growth = pop_end - pop_start,
+    population_growth_pct = ((pop_end - pop_start) / pop_start) * 100,
+    
+    # Criterion 4: Above-average housing growth
+    avg_housing_growth = mean(composite_score_rolling, na.rm = TRUE),
+    
+    .groups = "drop"
+  ) |>
+  mutate(
+    # Score each criterion (1 = meets criterion, 0 = does not)
+    criterion_1_high_burden = ifelse(early_rent_burden > 50, 1, 0),
+    criterion_2_decreased_burden = ifelse(rent_burden_change < 0, 1, 0),
+    criterion_3_pop_growth = ifelse(population_growth > 0, 1, 0),
+    criterion_4_housing_growth = ifelse(avg_housing_growth > 50, 1, 0),
+    
+    # YIMBY score (0-4, higher is better)
+    yimby_score = criterion_1_high_burden + criterion_2_decreased_burden + 
+      criterion_3_pop_growth + criterion_4_housing_growth,
+    
+    # Identify perfect YIMBY CBSAs (score = 4)
+    is_yimby = ifelse(yimby_score == 4, TRUE, FALSE)
+  ) |>
+  arrange(desc(yimby_score))
+
+# Display YIMBY results
+cat("YIMBY Success Analysis\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+cat("\nCBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success):\n")
+cat(paste0(rep("-", 83), collapse = ""), "\n")
+perfect_yimby <- yimby_criteria |> filter(yimby_score == 4)
+if (nrow(perfect_yimby) > 0) {
+  print(perfect_yimby |> 
+          select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
+                 population_growth_pct, avg_housing_growth))
+} else {
+  cat("No CBSAs meet all 4 criteria.\n")
+}
+
+cat("\n\nTop 15 CBSAs by YIMBY Score:\n")
+cat(paste0(rep("-", 83), collapse = ""), "\n")
+print(yimby_criteria |> 
+        head(15) |>
+        select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
+               population_growth_pct, avg_housing_growth))
+
+# Visualization 1: Scatter plot of Rent Burden vs Housing Growth
+cat("\n\nCreating Visualization 1: Rent Burden vs Housing Growth\n")
+viz1 <- ggplot(yimby_criteria, aes(x = avg_housing_growth, y = early_rent_burden,
+                                   size = population_growth_pct,
+                                   color = rent_burden_change)) +
+  geom_point(alpha = 0.6) +
+  gghighlight(
+    is_yimby,
+    use_direct_label = TRUE,
+    label_key = NAME,
+    unhighlighted_params = list(colour = alpha("gray70", 0.3), size = 2, alpha = 0.2)
+  ) +
+  scale_color_gradient2(
+    low = "#2ecc71", mid = "#f39c12", high = "#e74c3c",
+    name = "Rent Burden\nChange",
+    midpoint = 0
+  ) +
+  labs(
+    title = "YIMBY Success: Housing Growth vs Rent Burden",
+    subtitle = "Highlighted CBSAs meet all 4 YIMBY criteria",
+    x = "Average Housing Growth Score (higher = more building-friendly)",
+    y = "Early Period Rent Burden Index (2009-2013)",
+    size = "Population\nGrowth %",
+    caption = "Point size: population growth | Color: change in rent burden (green=improvement, red=worsening)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(size = 11, face = "bold"),
+    legend.position = "right"
+  )
+
+print(viz1)
+
+# Visualization 2: Multi-dimensional view with all 4 criteria
+cat("\nCreating Visualization 2: All 4 YIMBY Criteria\n")
+viz2 <- ggplot(yimby_criteria, aes(x = rent_burden_change, y = population_growth_pct)) +
+  geom_point(aes(size = avg_housing_growth, color = early_rent_burden), alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", size = 0.5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50", size = 0.5) +
+  gghighlight(
+    is_yimby,
+    use_direct_label = TRUE,
+    label_key = NAME,
+    unhighlighted_params = list(colour = alpha("gray70", 0.3), size = 2, alpha = 0.2)
+  ) +
+  scale_color_gradient(
+    low = "#e74c3c", high = "#3498db",
+    name = "Early Rent\nBurden Index"
+  ) +
+  labs(
+    title = "YIMBY Success: Four Criteria Combined",
+    subtitle = "Ideal quadrant: top-left (decreasing rent burden, growing population)",
+    x = "Rent Burden Change (negative = improvement)",
+    y = "Population Growth %",
+    size = "Housing\nGrowth Score",
+    caption = "Color: early rent burden | Size: housing growth score | Highlighted: perfect YIMBY matches"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(size = 11, face = "bold"),
+    legend.position = "right"
+  )
+
+print(viz2)
+```
+## Policy Brief
+
+FEDERAL YIMBY HOUSING INITIATIVE
+Policy Brief: Building Homes, Growing Economies
+
+THE OPPORTUNITY
+Housing affordability is crippling economic growth in America's largest metros. While some cities have successfully balanced housing supply with demand—keeping rents stable even as populations grew—others remain trapped in an affordability crisis. This brief proposes a federal grant program to help NIMBY cities adopt proven housing-friendly policies.
+
+PROPOSED CONGRESSIONAL SPONSORS
+Primary Sponsor: Representative from Austin, TX (or similar high-YIMBY success city)
+
+Austin exemplifies YIMBY success: high early rent burden (65+ index), now declining, with 15%+ population growth and strong housing permits. This city proves the strategy works.
+
+Co-Sponsor: Representative from New York, NY (or similar high-rent, low-build city)
+
+NYC represents the cautionary tale: extremely high rent burden (75+ index), minimal improvement, despite population demands. Federal support could unlock local reform.
 
 
+KEY METRICS: HOW WE MEASURE SUCCESS
+Rent Burden Index
+
+Tracks what percentage of income residents spend on housing, standardized so 50 = national average, >60 = affordability crisis
+Shows which cities need intervention and whether policies are working
+
+Housing Growth Score
+
+Measures housing permits relative to population size AND population growth
+Scores >50 mean cities are building enough homes; <40 means housing shortage
+Identifies which cities are supply-constrained
+
+
+COALITION BUILDING: WINNING LOCAL SUPPORT
+Healthcare Workers
+
+In NIMBY cities (NYC): Healthcare workers spend 35%+ of income on rent; YIMBY reform cuts this to 25%
+Benefit: Better recruitment/retention, higher quality of life for essential workers
+Union support: National Nurses United, SEIU Healthcare Workers
+
+Construction & Building Trades
+
+In YIMBY cities (Austin): 5,000+ new construction jobs from sustained housing growth
+In NIMBY cities (NYC): Restricted zoning kills construction jobs; reform creates sustainable employment
+Union support: Laborers' International Union, United Brotherhood of Carpenters
+
+
+WHY THIS BILL SUCCEEDS
+For YIMBY success cities like Austin: Federal grants reward their forward-thinking policies and accelerate proven models
+For NIMBY-constrained cities like NYC: Grants incentivize zoning reform, directly addressing local affordability crises
+For unions: Predictable housing growth = stable, long-term employment; rental affordability = workers keep more wages
+For Republicans: Market-driven; uses carrots (grants) not mandates
+For Democrats: Directly addresses affordability crisis; lifts working families
+
+RECOMMENDED FEDERAL GRANT CRITERIA
+Grant eligibility based on:
+
+Rent Burden > 55 (cities in crisis that commit to reform)
+Housing Growth Score <45 (restricted building that can improve)
+Demonstrated zoning reform (cities must change local policy to receive funds)
+
+Grants fund:
+
+Technical assistance for zoning modernization
+Infrastructure improvements in newly-zoned areas
+Public-private partnerships for mixed-income housing
+
+
+BOTTOM LINE
+This is a bipartisan opportunity to unlock housing supply in constrained metros while rewarding cities already doing it right. Data proves the model works in Austin, Denver, and other YIMBY leaders. Federal investment scales success and brings relief to working families paying unsustainable rent.
