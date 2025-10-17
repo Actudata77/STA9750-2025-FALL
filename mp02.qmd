@@ -314,7 +314,7 @@ largest_cbsa <- PERMITS %>%
   select(NAME, total_permits)
 
 highlight <- function(x) {
-  paste0('<span style="color: darkgreen;"><b>', x, '</b></span>')
+  paste0('<span style="color: darkred;"><b>', x, '</b></span>')
 }
 ```
 

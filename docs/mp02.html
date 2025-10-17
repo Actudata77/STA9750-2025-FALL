@@ -456,11 +456,11 @@ Although the data are not fully normalized—some relationships, we have enough 
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(NAME, total_permits)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>highlight <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">'&lt;span style="color: darkgreen;"&gt;&lt;b&gt;'</span>, x, <span class="st">'&lt;/b&gt;&lt;/span&gt;'</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">'&lt;span style="color: darkred;"&gt;&lt;b&gt;'</span>, x, <span class="st">'&lt;/b&gt;&lt;/span&gt;'</span>)</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The CBSA that permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive) is <span style="color: darkgreen;"><b>Houston-Sugar Land-Baytown, TX Metro Area</b></span>, which permitted <span style="color: darkgreen;"><b>482075</b></span> new housing units.</p>
+<p>The CBSA that permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive) is <span style="color: darkred;"><b>Houston-Sugar Land-Baytown, TX Metro Area</b></span>, which permitted <span style="color: darkred;"><b>482075</b></span> new housing units.</p>
 <p><strong>2.In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?</strong></p>
 <div class="cell">
 <details class="code-fold">
@@ -472,7 +472,7 @@ Although the data are not fully normalized—some relationships, we have enough 
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(year, new_housing_units_permitted)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year of <span style="color: darkgreen;"><b>2021</b></span>, for a total of <span style="color: darkgreen;"><b>4021</b></span>.</p>
+<p>Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year of <span style="color: darkred;"><b>2021</b></span>, for a total of <span style="color: darkred;"><b>4021</b></span>.</p>
 <p><strong>3.Which state (not CBSA) had the highest average individual income in 2015? To answer this question, you will need to first compute the total income per CBSA by multiplying the average household income by the number of households, and then sum total income and total population across all CBSAs in a state. With these numbers, you can answer this question.</strong></p>
 <div class="cell">
 <details class="code-fold">
@@ -554,7 +554,7 @@ Although the data are not fully normalized—some relationships, we have enough 
 5  2009 New York-Northern New Jersey-Long Island, NY-NJ-PA Met…            16349</code></pre>
 </div>
 </div>
-<p>The last year in which the NYC CBSA had the most data scientists in the country was <span style="color: darkgreen;"><b>2015</b></span>.</p>
+<p>The last year in which the NYC CBSA had the most data scientists in the country was <span style="color: darkred;"><b>2015</b></span>.</p>
 <p><strong>5. What fraction of total wages in the NYC CBSA was earned by people employed in the finance and insurance industries (NAICS code 52)? In what year did this fraction peak?</strong></p>
 <div class="cell">
 <details class="code-fold">
@@ -598,7 +598,7 @@ Although the data are not fully normalized—some relationships, we have enough 
 <span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(fraction, <span class="at">n =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries peaked in the year <span style="color: darkgreen;"><b>2014</b></span>, with a fraction of <span style="color: darkgreen;"><b>4.6</b></span>%.</p>
+<p>The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries peaked in the year <span style="color: darkred;"><b>2014</b></span>, with a fraction of <span style="color: darkred;"><b>4.6</b></span>%.</p>
 
 
 </section>
