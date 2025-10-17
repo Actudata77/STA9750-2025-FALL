@@ -579,12 +579,19 @@ We will begin by constructing an initial metric of rent affordability by combini
 
 ### Rent Burden
 
-**Standardization:** Define a baseline value around which your metric is centered.  
+**1. Standardization:** Define a baseline value around which your metric is centered.  
 Some possible baseline structures may include:
 
 - Setting 0, 50, or 100 to the long-term national average  
 - Setting 0, 50, or 100 to the national average in the first year of your study  
-- Setting 0 to the lowest value and 100 to the highest value in the study
+- Setting 0 to the lowest value and 100 to the highest value in the study.
+
+**2. Scaling and Transformation**: Standardize your metric to increase interpretability. Some standardizations may include:
+
+- Setting 0 to the lowest value, 100 to the highest value, and linearly scaling in between
+- Dividing by the standard deviation so that values can be interpreted as “standard deviations above average”
+- Dividing by the baseline value so that values can be interpreted as “
+ times baseline”
 
 
 ```{r}
@@ -662,9 +669,215 @@ print(
     slice_min(rent_burden_index, n = 10) |>
     select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
 )
-
-# Display the full dataset
-cat("\n\nFull Rent Burden Dataset:\n")
-print(rent_burden_data)
 ```
+
+### Housing Growth
+
+Join together the POPULATION and PERMITS tables. Using this data, construct a suitable measure of housing growth: that is, how many new housing units are permitted in a CBSA, relative to both the current number of residents and the overall population growth of that CBSA. Because this metric takes into account growth patterns, it should depend on a fixed lookback-window of 5 years used to estimate population growth.
+
+Before constructing your metric, use dplyr functionality to calculate population growth within each CBSA over a rolling 5 year window. Since your data begins in 2009, your five-year estimates of population growth will start in 2014. The lag function may be useful here.
+
+Construct your metric in two parts:
+
+An ‘instantaneous’ measure of housing growth that depends on the absolute population of a CBSA and the number of new housing units permitted that year.
+A ‘rate-based’ measure of housing growth that compares the number of housing permits to the population growth over a 5 year lookback window.
+For each of these, suitably standardize and baseline your metric. You may choose to use housing permits and population on their own, construct ratios, or other transformations necessary to construct suitable metrics.
+
+Once you have developed the two individual metrics, construct two tables identifying the CBSAs that score particularly high or low on each metric.
+
+Finally, develop a composite score that combines these two metrics. This may be a sum, weighted sum, maximum, minimum, or any other combination function you feel works best.2 As before, identify CBSAs that do particularly well and particularly poorly on your metric.
+
+Because homebuilding is a slow process, it may be worth aggregating over years. You can use the cummean-family of functions from dplyr to compute cumulative statistics or the roll_* functions from the RcppRoll package to get a rolling estimate, e.g., a rolling 5-year average.
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(RcppRoll)
+
+# Step 1: Join POPULATION and PERMITS tables
+# Note: PERMITS uses CBSA, POPULATION uses GEOID (which are the same values)
+housing_data <- POPULATION |>
+  select(GEOID, NAME, year, population) |>
+  inner_join(
+    PERMITS |> rename(GEOID = CBSA),
+    by = c("GEOID" = "GEOID", "year" = "year")
+  ) |>
+  arrange(GEOID, year)
+
+# Step 2: Calculate 5-year population growth within each CBSA
+housing_data <- housing_data |>
+  group_by(GEOID) |>
+  mutate(
+    # Population 5 years ago
+    population_5yr_ago = lag(population, n = 5),
+    
+    # 5-year population growth
+    population_growth_5yr = population - population_5yr_ago,
+    
+    # Population growth rate (%)
+    population_growth_rate_5yr = ((population - population_5yr_ago) / population_5yr_ago) * 100,
+    
+    # Year indicator for filtering (5-year window starts at 2014)
+    year_indicator = if_else(year >= 2014, 1, 0)
+  ) |>
+  ungroup()
+
+cat("Population growth calculated. Data starts reliably from 2014 onwards.\n\n")
+
+# Step 3: Calculate baseline statistics for standardization
+# Calculate national median values for standardization
+national_permits_median <- housing_data |>
+  summarise(median_permits = median(new_housing_units_permitted, na.rm = TRUE)) |>
+  pull(median_permits)
+
+national_pop_median <- housing_data |>
+  summarise(median_pop = median(population, na.rm = TRUE)) |>
+  pull(median_pop)
+
+national_growth_median <- housing_data |>
+  filter(year_indicator == 1) |>
+  summarise(median_growth = median(population_growth_5yr, na.rm = TRUE)) |>
+  pull(median_growth)
+
+cat("National baseline statistics:\n")
+cat("  Median permits per year:", round(national_permits_median, 0), "\n")
+cat("  Median population:", round(national_pop_median, 0), "\n")
+cat("  Median 5-year population growth:", round(national_growth_median, 0), "\n\n")
+
+# Step 4: Construct Metric 1 - Instantaneous Housing Growth
+# Housing units per capita (permits relative to current population)
+# Standardized: (permits / population) / (national_permits / national_pop) * 50
+housing_data <- housing_data |>
+  mutate(
+    # Raw ratio: permits per 1000 residents
+    permits_per_1000_pop = (new_housing_units_permitted / population) * 1000,
+    
+    # National average permits per 1000
+    national_permits_per_1000 = (national_permits_median / national_pop_median) * 1000,
+    
+    # Standardized instantaneous metric (50 = national average)
+    instantaneous_metric = (permits_per_1000_pop / national_permits_per_1000) * 50
+  )
+
+# Step 5: Construct Metric 2 - Rate-Based Housing Growth
+# Compare housing permits to population growth
+# Only calculate for years where we have 5-year growth data
+housing_data <- housing_data |>
+  mutate(
+    # Permits relative to 5-year population growth
+    # If population declining, use minimum population for denominator
+    population_growth_5yr_adj = pmax(population_growth_5yr, 1),
+    
+    permits_to_growth_ratio = new_housing_units_permitted / population_growth_5yr_adj,
+    
+    # Standardize using national median
+    rate_based_metric = if_else(
+      year_indicator == 1,
+      (permits_to_growth_ratio / median(permits_to_growth_ratio, na.rm = TRUE)) * 50,
+      NA_real_
+    )
+  )
+
+# Step 6: Construct Composite Score
+# Composite = average of both metrics (equal weighting)
+# Only calculate for years with complete data (2014+)
+housing_data <- housing_data |>
+  mutate(
+    composite_score = if_else(
+      year_indicator == 1,
+      (instantaneous_metric + rate_based_metric) / 2,
+      NA_real_
+    )
+  )
+
+# Step 7: Apply rolling average (3-year) for stability
+housing_data <- housing_data |>
+  group_by(GEOID) |>
+  mutate(
+    composite_score_rolling = roll_mean(composite_score, n = 3, na.rm = TRUE, fill = NA)
+  ) |>
+  ungroup()
+
+cat("Metrics constructed. Displaying top and bottom performers...\n\n")
+
+# Step 8: Identify top and bottom CBSAs on Instantaneous Metric (most recent year)
+recent_year <- max(housing_data$year[housing_data$year_indicator == 1])
+
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+cat("INSTANTANEOUS METRIC - Top 10 (Permits per Population)\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+print(
+  housing_data |>
+    filter(year == recent_year) |>
+    slice_max(instantaneous_metric, n = 10) |>
+    select(NAME, year, population, new_housing_units_permitted, 
+           permits_per_1000_pop, instantaneous_metric) |>
+    arrange(desc(instantaneous_metric))
+)
+
+cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
+cat("INSTANTANEOUS METRIC - Bottom 10\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+print(
+  housing_data |>
+    filter(year == recent_year) |>
+    slice_min(instantaneous_metric, n = 10) |>
+    select(NAME, year, population, new_housing_units_permitted, 
+           permits_per_1000_pop, instantaneous_metric) |>
+    arrange(instantaneous_metric)
+)
+
+# Step 9: Identify top and bottom CBSAs on Rate-Based Metric
+cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
+cat("RATE-BASED METRIC - Top 10 (Permits vs Population Growth)\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+print(
+  housing_data |>
+    filter(year == recent_year, !is.na(rate_based_metric)) |>
+    slice_max(rate_based_metric, n = 10) |>
+    select(NAME, year, population_growth_5yr, new_housing_units_permitted, 
+           permits_to_growth_ratio, rate_based_metric) |>
+    arrange(desc(rate_based_metric))
+)
+
+cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
+cat("RATE-BASED METRIC - Bottom 10\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+print(
+  housing_data |>
+    filter(year == recent_year, !is.na(rate_based_metric)) |>
+    slice_min(rate_based_metric, n = 10) |>
+    select(NAME, year, population_growth_5yr, new_housing_units_permitted, 
+           permits_to_growth_ratio, rate_based_metric) |>
+    arrange(rate_based_metric)
+)
+
+# Step 10: Identify top and bottom CBSAs on Composite Score
+cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
+cat("COMPOSITE SCORE - Top 10 (Best for Housing Growth)\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+print(
+  housing_data |>
+    filter(year == recent_year, !is.na(composite_score)) |>
+    slice_max(composite_score_rolling, n = 10, na_rm = TRUE) |>
+    select(NAME, year, instantaneous_metric, rate_based_metric, 
+           composite_score, composite_score_rolling) |>
+    arrange(desc(composite_score_rolling))
+)
+
+cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
+cat("COMPOSITE SCORE - Bottom 10 (Worst for Housing Growth)\n")
+cat(paste0(rep("=", 83), collapse = ""), "\n")
+print(
+  housing_data |>
+    filter(year == recent_year, !is.na(composite_score)) |>
+    slice_min(composite_score_rolling, n = 10, na_rm = TRUE) |>
+    select(NAME, year, instantaneous_metric, rate_based_metric, 
+           composite_score, composite_score_rolling) |>
+    arrange(composite_score_rolling)
+)
+
+```
+
 
