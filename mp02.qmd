@@ -272,7 +272,6 @@ WAGES <- get_bls_qcew_annual_averages()
 
 
 
-
 ### Extra Credit Opportunity #01: Relationship Diagram
 
 The diagram below summarizes the structure of the datasets used in this project and the relationships among them.
@@ -299,7 +298,7 @@ Each dataset in this project represents a distinct source of information related
 Put together, all these relationships show how multiple data sources with different identifiers (`GEOID`, `CBSA`, `FIPS`) and time references (`year`) can be integrated.  
 Although the data are not fully normalized—some relationships, we have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.
 
-## Multi-Table Questions
+### Multi-Table Questions
 
 **1.Which CBSA (by name) permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive)?**
 
@@ -442,3 +441,230 @@ peak_year <- finance_fraction |>
 ```
 
 The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries peaked in the year `r highlight(peak_year$YEAR[[1]])`, with a fraction of `r highlight(round(peak_year$fraction[[1]] * 100, 2))`%.
+
+### Initial Visualizations
+
+**1. The relationship between monthly rent and average household income per CBSA in 2009 using ggplot**
+```{r}
+library(ggplot2)
+income_rent_2009 <- INCOME %>%
+  filter(year == 2009) %>%
+  inner_join(RENT %>% filter(year == 2009), by = c("GEOID", "year"))
+ggplot(income_rent_2009, aes(x = household_income, y = monthly_rent)) +
+  geom_point(color = "blue", alpha = 0.6) +
+  labs(title = "Monthly Rent vs. Average Household Income (2009)",
+       x = "Average Household Income",
+       y = "Monthly Rent") +
+  theme_bw()
+```
+
+
+
+**2. The relationship between total employment and total employment in the health care and social services sector (NAICS 62) across different CBSAs. Design your visualization so that it is possible to see the evolution of this relationship over time.**
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+#  Step 1: Filter WAGES data for healthcare (NAICS 62) before joining
+healthcare_wages <- WAGES |>
+  filter(INDUSTRY == 62) |>
+  mutate(std_cbsa = paste0(FIPS, "0")) |>
+  group_by(std_cbsa, YEAR) |>
+  summarise(healthcare_employment = sum(EMPLOYMENT, na.rm = TRUE), .groups = "drop")
+
+# Step 2: Calculate total employment by CBSA and year
+total_employment <- WAGES |>
+  mutate(std_cbsa = paste0(FIPS, "0")) |>
+  group_by(std_cbsa, YEAR) |>
+  summarise(total_employment = sum(EMPLOYMENT, na.rm = TRUE), .groups = "drop")
+
+# Step 3: Join healthcare and total employment data
+employment_data <- total_employment |>
+  inner_join(healthcare_wages, by = c("std_cbsa", "YEAR")) |>
+  inner_join(
+    POPULATION |> mutate(std_cbsa = paste0("C", GEOID)) |> select(std_cbsa, NAME, year),
+    by = c("std_cbsa" = "std_cbsa", "YEAR" = "year")
+  ) |>
+  mutate(healthcare_share = healthcare_employment / total_employment)
+
+ggplot(employment_data, aes(x = total_employment, y = healthcare_employment, color = YEAR)) +
+  geom_point(alpha = 0.6, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, alpha = 0.3) +
+  facet_wrap(~YEAR, scales = "free") +
+  scale_x_log10(labels = scales::comma) +
+  scale_y_log10(labels = scales::comma) +
+  labs(
+    title = "Relationship Between Total Employment and Healthcare Employment by CBSA",
+    subtitle = "Evolution over time across different years",
+    x = "Total Employment (log scale)",
+    y = "Healthcare & Social Services Employment (log scale)",
+    color = "Year"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    legend.position = "bottom"
+  )
+
+```
+
+
+**3. The evolution of average household size over time. Use different lines to represent different CBSAs. For each plot, make sure your final visualization is publication-ready and equipped with, at a minimum.**
+
+- Proper x and y-axis axis labels
+- A meaningful title
+- Proper units for axis ticks (if appropriate)
+- Proper legend titles (if appropriate)
+- Proper font sizes so that all text is legible.
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# --- Build CBSA–year totals from WAGES ---
+health_emp <- WAGES %>%
+  group_by(YEAR, FIPS) %>%
+  summarise(
+    total_emp  = sum(EMPLOYMENT, na.rm = TRUE),
+    health_emp = sum(EMPLOYMENT[INDUSTRY == 62], na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(total_emp > 0) %>%                      # keep valid rows
+  mutate(std_cbsa = paste0(FIPS, "0"))           # to match Census IDs
+
+# (optional) add CBSA names for nicer plots/tooltips/filters
+cbsa_names <- POPULATION %>%
+  mutate(std_cbsa = paste0("C", GEOID)) %>%
+  distinct(std_cbsa, NAME)
+
+health_emp <- health_emp %>% left_join(cbsa_names, by = "std_cbsa")
+
+
+
+ggplot(health_emp, aes(x = total_emp, y = health_emp)) +
+  geom_point(alpha = 0.55) +
+  scale_x_log10(labels = comma) +
+  scale_y_log10(labels = comma) +
+  facet_wrap(~ YEAR, ncol = 4) +
+  labs(
+    title = "Health Care & Social Services vs Total Employment across CBSAs",
+    subtitle = "Each panel is a year; log scales show the relationship across city sizes",
+    x = "Total employment (log scale)",
+    y = "Health care & social services employment (log scale)"
+  ) +
+  theme_minimal()
+
+
+ggplot(health_emp, aes(total_emp, health_emp, group = std_cbsa)) +
+  geom_path(aes(color = YEAR), alpha = 0.25, linewidth = 0.6) +
+  geom_point(aes(color = YEAR), alpha = 0.25, size = 0.7) +
+  scale_x_log10(labels = comma) +
+  scale_y_log10(labels = comma) +
+  scale_color_viridis_c(option = "plasma", guide = guide_colorbar(title = "Year")) +
+  labs(
+    title = "Evolution of Health Sector Employment vs Total Employment",
+    subtitle = "Each path is a CBSA moving through time",
+    x = "Total employment (log scale)",
+    y = "Health care & social services employment (log scale)"
+  ) +
+  theme_minimal()
+
+```
+## Building Indices of Housing Affordability and Housing Stock Growth
+
+We will begin by constructing an initial metric of rent affordability by combining our INCOME, RENT, and POPULATION tables from above. Using a suitable join, we merge these three into a single table which can be used to perform the following task.
+
+### Rent Burden
+
+**Standardization:** Define a baseline value around which your metric is centered.  
+Some possible baseline structures may include:
+
+- Setting 0, 50, or 100 to the long-term national average  
+- Setting 0, 50, or 100 to the national average in the first year of your study  
+- Setting 0 to the lowest value and 100 to the highest value in the study
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+
+# Step 1: Join INCOME and RENT tables
+rent_burden_raw <- INCOME |>
+  inner_join(
+    RENT,
+    by = c("GEOID" = "GEOID", "year" = "year"),
+    suffix = c("_income", "_rent")
+  ) |>
+  select(GEOID, NAME_income, year, household_income, monthly_rent) |>
+  rename(NAME = NAME_income)
+
+# Step 2: Calculate basic rent-to-income ratio
+# Annualize monthly rent and compute ratio
+rent_burden_raw <- rent_burden_raw |>
+  mutate(
+    annual_rent = monthly_rent * 12,
+    raw_rent_to_income = annual_rent / household_income
+  )
+
+# Step 3: Calculate national baseline (long-term average across all years and CBSAs)
+national_baseline <- rent_burden_raw |>
+  summarise(mean_rent_to_income = mean(raw_rent_to_income, na.rm = TRUE)) |>
+  pull(mean_rent_to_income)
+
+cat("National baseline rent-to-income ratio:", round(national_baseline, 4), "\n\n")
+
+# Step 4: Create standardized rent burden index
+rent_burden_data <- rent_burden_raw |>
+  mutate(
+    # Standardized index (50 = national average)
+    rent_burden_index = (raw_rent_to_income / national_baseline) * 50,
+    
+    # Classification for interpretation
+    burden_level = case_when(
+      rent_burden_index < 30 ~ "Very Low",
+      rent_burden_index < 40 ~ "Low",
+      rent_burden_index < 50 ~ "Below Average",
+      rent_burden_index < 60 ~ "Above Average",
+      rent_burden_index < 70 ~ "High",
+      TRUE ~ "Very High"
+    )
+  ) |>
+  select(GEOID, NAME, year, household_income, monthly_rent, 
+         annual_rent, raw_rent_to_income, rent_burden_index, burden_level) |>
+  arrange(year, rent_burden_index)
+
+# Display summary statistics
+cat("Rent Burden Index Summary Statistics:\n")
+cat("=====================================\n")
+cat("Min:", round(min(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n")
+cat("Q1:", round(quantile(rent_burden_data$rent_burden_index, 0.25, na.rm = TRUE), 2), "\n")
+cat("Median:", round(median(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n")
+cat("Mean:", round(mean(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n")
+cat("Q3:", round(quantile(rent_burden_data$rent_burden_index, 0.75, na.rm = TRUE), 2), "\n")
+cat("Max:", round(max(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n\n")
+
+# Show examples of high and low burden CBSAs
+cat("Top 10 Highest Rent Burden (most recent year):\n")
+print(
+  rent_burden_data |>
+    filter(year == max(year)) |>
+    slice_max(rent_burden_index, n = 10) |>
+    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
+)
+
+cat("\n\nTop 10 Lowest Rent Burden (most recent year):\n")
+print(
+  rent_burden_data |>
+    filter(year == max(year)) |>
+    slice_min(rent_burden_index, n = 10) |>
+    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
+)
+
+# Display the full dataset
+cat("\n\nFull Rent Burden Dataset:\n")
+print(rent_burden_data)
+```
+
