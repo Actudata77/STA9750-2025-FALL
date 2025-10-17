@@ -8,7 +8,7 @@ format:
     number-sections: true
     theme: materia
     code-fold: true
-    code-summary: "Show technical details"
+    code-summary: "Show code"
 ---
 
 ![](images/pic2.png){width="100%" fig-align="center"}
@@ -350,3 +350,95 @@ Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year
     slice(1) %>%
     select(state, avg_individual_income)
 ```
+
+**4.Data scientists and business analysts are recorded under NAICS code 5182. What is the last year in which the NYC CBSA had the most data scientists in the country? In recent, the San Francisco CBSA has had the most data scientists.**
+
+
+```{r}
+
+library(dplyr)
+
+# Filter WAGES data for data scientists (NAICS 5182) first
+wages_filtered <- WAGES |>
+  filter(INDUSTRY == 5182) |>
+  mutate(std_cbsa = paste0(FIPS, "0"))
+
+# Filter POPULATION data and prepare for join
+population_filtered <- POPULATION |>
+  mutate(std_cbsa = paste0("C", GEOID))
+
+# Join the datasets on std_cbsa and year
+data_scientists <- wages_filtered |>
+  inner_join(
+    population_filtered |> select(std_cbsa, NAME, year),
+    by = c("std_cbsa" = "std_cbsa", "YEAR" = "year")
+  )
+
+# Group by year and CBSA to find which had the most data scientists
+ds_by_year <- data_scientists |>
+  group_by(YEAR, NAME) |>
+  summarise(total_employment = sum(EMPLOYMENT, na.rm = TRUE), .groups = "drop") |>
+  group_by(YEAR) |>
+  slice_max(total_employment, n = 1) |>
+  ungroup() |>
+  arrange(desc(YEAR))
+
+# Find the last year NYC had the most data scientists
+last_nyc_year <- ds_by_year |>
+  filter(grepl("New York", NAME, ignore.case = TRUE)) |>
+  pull(YEAR) |>
+  max()
+
+
+# Filter to show only NYC area rows
+nyc_only <- ds_by_year |>
+  filter(grepl("New York", NAME, ignore.case = TRUE))
+print(nyc_only)
+```
+
+The last year in which the NYC CBSA had the most data scientists in the country was `r highlight(last_nyc_year)`.
+
+**5. What fraction of total wages in the NYC CBSA was earned by people employed in the finance and insurance industries (NAICS code 52)? In what year did this fraction peak?**
+
+```{r}
+#  Step 1: Filter WAGES data before joining
+wages_filtered <- WAGES |>
+  mutate(std_cbsa = paste0(FIPS, "0"))
+
+# Step 2: Filter POPULATION data and prepare for join
+population_filtered <- POPULATION |>
+  mutate(std_cbsa = paste0("C", GEOID)) |>
+  filter(grepl("New York", NAME, ignore.case = TRUE))
+
+# Step 3: Join to get NYC data only
+nyc_wages <- wages_filtered |>
+  inner_join(
+    population_filtered |> select(std_cbsa, NAME, year),
+    by = c("std_cbsa" = "std_cbsa", "YEAR" = "year")
+  )
+
+# Step 4: Calculate total wages by year for NYC
+total_wages_by_year <- nyc_wages |>
+  group_by(YEAR) |>
+  summarise(total_wages = sum(TOTAL_WAGES, na.rm = TRUE), .groups = "drop")
+
+# Step 5: Calculate finance and insurance (NAICS 52) wages by year for NYC
+finance_wages_by_year <- nyc_wages |>
+  filter(INDUSTRY == 52) |>
+  group_by(YEAR) |>
+  summarise(finance_wages = sum(TOTAL_WAGES, na.rm = TRUE), .groups = "drop")
+
+# Step 6: Join and calculate the fraction
+finance_fraction <- total_wages_by_year |>
+  inner_join(finance_wages_by_year, by = "YEAR") |>
+  mutate(fraction = finance_wages / total_wages) |>
+  arrange(YEAR)
+
+
+# Find the year with the peak fraction
+peak_year <- finance_fraction |>
+  slice_max(fraction, n = 1)
+
+```
+
+The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries The fraction of total wages in the NYC CBSA earned by people employed in the finance and insurance industries peaked in the year `r highlight(peak_year$YEAR[[1]])`, with a fraction of `r highlight(round(peak_year$fraction[[1]] * 100, 2))`%.
