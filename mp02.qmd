@@ -9,6 +9,11 @@ format:
     theme: materia
     code-fold: true
     code-summary: "Show code"
+    fig-width: 10
+    fig-height: 7
+    dpi: 300
+    fig-align: center
+
 ---
 
 ![](images/pic2.png){width="100%" fig-align="center"}
@@ -31,6 +36,12 @@ format:
 #| warning: false
 #| code-fold: true
 #| code-summary: "Show technical details"
+
+#| fig-width: 10
+#| fig-height: 7
+#| dpi: 300
+#| fig-align: center
+
 
 if(!dir.exists(file.path("data", "mp02"))){
     dir.create(file.path("data", "mp02"), showWarnings=FALSE, recursive=TRUE)
@@ -458,7 +469,7 @@ The fraction of total wages in the NYC CBSA earned by people employed in the fin
 ### Initial Visualizations
 
 **1. The relationship between monthly rent and average household income per CBSA in 2009 using ggplot**
-```{r}
+```{rmonthly_rent_vs_income_2009}
 library(ggpmisc)
 library(ggplot2)
 income_rent_2009 <- INCOME |> 
@@ -482,7 +493,7 @@ The coefficient of determination (R²) of 0.58 indicates that approximately 58% 
 
 **2. The relationship between total employment and total employment in the health care and social services sector (NAICS 62) across different CBSAs. Design your visualization so that it is possible to see the evolution of this relationship over time.**
 
-```{r}
+```{r total_vs_healthcare_employment}
 library(dplyr)
 library(ggplot2)
 
@@ -508,12 +519,27 @@ employment_data <- total_employment |>
   ) |>
   mutate(healthcare_share = healthcare_employment / total_employment)
 
-ggplot(employment_data, aes(x = total_employment, y = healthcare_employment, color = YEAR)) +
+employment_data_clean <- employment_data %>%
+  filter(total_employment > 0,
+         healthcare_employment > 0,
+         is.finite(total_employment),
+         is.finite(healthcare_employment))
+
+
+ggplot(employment_data_clean, aes(x = total_employment, y = healthcare_employment, color = YEAR)) +
   geom_point(alpha = 0.6, size = 2) +
-  geom_smooth(method = "lm", se = FALSE, alpha = 0.3) +
+  geom_smooth(method = "lm", formula = y ~ x, 
+              se = FALSE, alpha = 0.3, na.rm = TRUE) +
   facet_wrap(~YEAR, scales = "free") +
-  scale_x_log10(labels = scales::comma) +
-  scale_y_log10(labels = scales::comma) +
+  scale_x_log10(
+  breaks = scales::trans_breaks("log10", function(x) 10^x, n = 5),
+  labels = scales::label_number(scale_cut = scales::cut_short_scale())
+) +
+scale_y_log10(
+  breaks = scales::trans_breaks("log10", function(x) 10^x, n = 5),
+  labels = scales::label_number(scale_cut = scales::cut_short_scale())
+)+
+
   labs(
     title = "Relationship Between Total Employment and Healthcare Employment by CBSA",
     subtitle = "Evolution over time across different years",
@@ -539,10 +565,11 @@ ggplot(employment_data, aes(x = total_employment, y = healthcare_employment, col
 - Proper font sizes so that all text is legible.
 
 
-```{r}
+```{r avg_household_size_evolution, warning=FALSE, message=FALSE, fig.width=10, fig.height=7, dpi=300}
 library(dplyr)
 library(ggplot2)
 library(scales)
+
 
 # --- Build CBSA–year totals from WAGES ---
 health_emp <- WAGES %>%
