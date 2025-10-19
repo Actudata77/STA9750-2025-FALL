@@ -9,10 +9,9 @@ format:
     code-summary: "Show code"
     number-sections: false
     theme: zephyr
-    fig-width: 10
-    fig-height: 7
-    dpi: 300
-    fig-align: center
+execute:
+  warning: false
+  message: false
 ---
 
 ![](images/top10Original.jpg){width="80%" height="auto" fig-align="center"}
