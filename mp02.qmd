@@ -5,18 +5,16 @@ format:
   html:
     toc: true
     toc-title: "Contents"
-    number-sections: true
-    theme: materia
+    number-sections: false
+    theme: zephyr
     code-fold: true
     code-summary: "Show code"
-    fig-width: 10
-    fig-height: 7
-    dpi: 300
-    fig-align: center
-
+execute:
+  warning: false
+  message: false
 ---
 
-![](images/pic2.png){width="100%" fig-align="center"}
+![](images/yimby.jpg){width="80%" height="auto" fig-align="center"}
 ## Introduction
 
 
@@ -29,18 +27,13 @@ format:
 
 ## Data Acquisition
 
+The following code will download all the necessary datasets for this project.
 
 ```{r}
 #| echo: true
 #| message: false
 #| warning: false
 #| code-fold: true
-#| code-summary: "Show technical details"
-
-#| fig-width: 10
-#| fig-height: 7
-#| dpi: 300
-#| fig-align: center
 
 
 if(!dir.exists(file.path("data", "mp02"))){
@@ -331,7 +324,7 @@ largest_cbsa <- PERMITS |>
   select(NAME, total_permits)
 
 highlight <- function(x) {
-  paste0('<span style="color:#0056b3;"><b>', x, '</b></span>')
+  paste0('<span style="color:#0000ff;"><b>', x, '</b></span>')
 }
 ```
 
@@ -423,7 +416,7 @@ The last year in which the NYC CBSA had the most data scientists in the country 
 
 **5. What fraction of total wages in the NYC CBSA was earned by people employed in the finance and insurance industries (NAICS code 52)? In what year did this fraction peak?**
 
-```{r}
+```{r fraction_finance_insurance_nyc}
 #  Step 1: Filter WAGES data before joining
 wages_filtered <- WAGES |>
   mutate(std_cbsa = paste0(FIPS, "0"))
@@ -469,7 +462,7 @@ The fraction of total wages in the NYC CBSA earned by people employed in the fin
 ### Initial Visualizations
 
 **1. The relationship between monthly rent and average household income per CBSA in 2009 using ggplot**
-```{rmonthly_rent_vs_income_2009}
+```{r monthly_rent_vs_income_2009}
 library(ggpmisc)
 library(ggplot2)
 income_rent_2009 <- INCOME |> 
@@ -564,8 +557,7 @@ scale_y_log10(
 - Proper legend titles (if appropriate)
 - Proper font sizes so that all text is legible.
 
-
-```{r avg_household_size_evolution, warning=FALSE, message=FALSE, fig.width=10, fig.height=7, dpi=300}
+```{r avg_household_size_evolution, warning=FALSE, message=FALSE}
 library(dplyr)
 library(ggplot2)
 library(scales)
@@ -604,21 +596,6 @@ ggplot(health_emp, aes(x = total_emp, y = health_emp)) +
   ) +
   theme_minimal()
 
-
-ggplot(health_emp, aes(total_emp, health_emp, group = std_cbsa)) +
-  geom_path(aes(color = YEAR), alpha = 0.25, linewidth = 0.6) +
-  geom_point(aes(color = YEAR), alpha = 0.25, size = 0.7) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10(labels = comma) +
-  scale_color_viridis_c(option = "plasma", guide = guide_colorbar(title = "Year")) +
-  labs(
-    title = "Evolution of Health Sector Employment vs Total Employment",
-    subtitle = "Each path is a CBSA moving through time",
-    x = "Total employment (log scale)",
-    y = "Health care & social services employment (log scale)"
-  ) +
-  theme_minimal()
-
 ```
 ## Building Indices of Housing Affordability and Housing Stock Growth
 
@@ -641,7 +618,7 @@ Some possible baseline structures may include:
  times baseline”
 
 
-```{r}
+```{r housing_affordability_index}
 # Load required libraries
 library(dplyr)
 
@@ -737,7 +714,7 @@ Finally, develop a composite score that combines these two metrics. This may be 
 Because homebuilding is a slow process, it may be worth aggregating over years. You can use the cummean-family of functions from dplyr to compute cumulative statistics or the roll_* functions from the RcppRoll package to get a rolling estimate, e.g., a rolling 5-year average.
 
 
-```{r}
+```{r housing_growth, warning=FALSE, message=FALSE}
 # Load required libraries
 library(dplyr)
 library(RcppRoll)
@@ -937,7 +914,7 @@ Create (at least) two visualizations to investigate the relationships between yo
 
 A CBSA exhibiting all of these qualities is (arguably) an example of YIMBY success and is not a city in decline, as would be indicated by falling population resulting in lower rents.
 
-```{r}
+```{r yimby_success_analysis, warning=FALSE, message=FALSE}
 # Load required libraries
 library(dplyr)
 library(ggplot2)
