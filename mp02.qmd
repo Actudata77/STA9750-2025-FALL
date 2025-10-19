@@ -331,11 +331,11 @@ largest_cbsa <- PERMITS |>
   select(NAME, total_permits)
 
 highlight <- function(x) {
-  paste0('<span style="color: darkred;"><b>', x, '</b></span>')
+  paste0('<span style="color:#0056b3;"><b>', x, '</b></span>')
 }
 ```
 
-The CBSA that permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive) is `r highlight(largest_cbsa$NAME)`, which permitted `r highlight(largest_cbsa$total_permits)` new housing units.
+The CBSA that permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive) is `r highlight(largest_cbsa$NAME)`, which permitted `r highlight(scales::comma(largest_cbsa$total_permits))` new housing units.
 
 **2.In what year did Albuquerque, NM (CBSA Number 10740) permit the most new housing units?**
 
