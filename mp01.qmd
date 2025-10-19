@@ -3,9 +3,19 @@ title: "Mini Project 01: Exploring the Most Popular Programming on Netflix"
 author: "Hyacinthe Sarr"
 format:
   html:
+    toc: true
+    toc-title: "Contents"
     code-fold: true
-    code-summary: "Show technical details"
+    code-summary: "Show code"
+    number-sections: false
+    theme: materia
+    fig-width: 10
+    fig-height: 7
+    dpi: 300
+    fig-align: center
 ---
+
+![](images/top10Original.jpg){width="80%" height="auto" fig-align="center"}
 
 ## Introduction
 
@@ -20,7 +30,19 @@ Some key facts:
 
 ## Acquire the Data
 
+For this project, we will deal with two separate data files, taken from Netflix’s TuDum Top 10. These are:
+
+- Global Top 10
+- Country-wide Top 10
+
+The following code will download the Netflix data.
+
 ```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+
 if (!dir.exists(file.path("data", "mp01"))) {
   dir.create(file.path("data", "mp01"), showWarnings = FALSE, recursive = TRUE)
 }
@@ -50,7 +72,7 @@ library(stringr)
 library(DT)
 ```
 
-## Data Import for the Global Top 10 dataset
+## Data Import and Cleaning 
 
 ```{r}
 if (!require("tidyverse")) install.packages("tidyverse")
@@ -74,7 +96,7 @@ The dataset has 8,800 rows and 9 columns
 
 By looking at the structure above, we do have some missing values not formatted as R would want it. Let's fix that issue
 
-## Data Cleaning for the Global Top 10 dataset
+### Data Cleaning for the Global Top 10 dataset
 
 ```{r}
 GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
@@ -91,7 +113,7 @@ str(GLOBAL_TOP_10)
 
 Great, let's turn to our second dataset that we will use.
 
-## Data Import for the Country Top 10 dataset
+### Data cleaning for Country Top 10 dataset
 
 ```{r}
 COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
@@ -108,7 +130,7 @@ After viewing the head and tail of the data, we want to just gain better sense o
 GLOBAL_TOP_10[sample(nrow(GLOBAL_TOP_10), 10), ]
 ```
 
-# Initial Data Exploration
+## Initial Data Exploration
 
 ```{r}
 library(DT)
@@ -163,16 +185,19 @@ Much better!
 
 We are now ready for some Explanatory Data Analysis.
 
-# Exploratory Data Analysis
+## Exploratory Data Analysis
 
 **1. How many different countries does Netflix operate in?**
 
 ```{r, echo=FALSE}
 countries <- COUNTRY_TOP_10 |>
   summarise(num_countries = n_distinct(country_name))
+highlight <- function(x) {
+  paste0('<span style="color:#0000ff;"><b>', x, '</b></span>')
+}
 ```
 
-Netflix operates in *`r countries$num_countries`* countries.
+Netflix operates in *`r highlight(countries$num_countries)`* countries.
 
 **2. Which non-English-language film has spent the most cumulative weeks in the global top 10?**
 
@@ -186,7 +211,7 @@ top_non_english <- GLOBAL_TOP_10 |>
 top_non_english
 ```
 
-The non-English film with the most cumulative weeks in the global top 10 is *`r top_non_english$show_title`* with *`r top_non_english$cumulative_weeks_in_top_10`* weeks.
+The non-English film with the most cumulative weeks in the global top 10 is *`r highlight(top_non_english$show_title)`* with *`r highlight(top_non_english$cumulative_weeks_in_top_10)`* weeks.
 
 **3. What is the longest film (English or non-English) to have ever appeared in the Netflix global Top 10? How long is it in minutes?**
 
@@ -201,7 +226,7 @@ longest_film_in_minutes <- GLOBAL_TOP_10 |>
 longest_film_in_minutes
 ```
 
-The longest film to have ever appeared in the Netflix global Top 10 is *`r longest_film_in_minutes$show_title`* with a runtime of *`r longest_film_in_minutes$runtime_minutes`* minutes.
+The longest film to have ever appeared in the Netflix global Top 10 is *`r highlight(longest_film_in_minutes$show_title)`* with a runtime of *`r highlight(longest_film_in_minutes$runtime_minutes)`* minutes.
 
 **4.For each of the four categories, what program has the most total hours of global viewership?**
 
@@ -230,7 +255,7 @@ longest_tv_run <- COUNTRY_TOP_10 |>
 longest_tv_run
 ```
 
-The TV show with the longest run in a country's Top 10 is *`r longest_tv_run$show_title`* in *`r longest_tv_run$country_name`* with a total of *`r longest_tv_run$longest_run`* weeks.
+The TV show with the longest run in a country's Top 10 is *`r highlight(longest_tv_run$show_title)`* in *`r highlight(longest_tv_run$country_name)`* with a total of *`r highlight(longest_tv_run$longest_run)`* weeks.
 
 **6.Netflix provides over 200 weeks of service history for all but one country in our data set. Which country is this and when did Netflix cease operations in that country?**
 
@@ -245,7 +270,7 @@ dropped_country <- COUNTRY_TOP_10 |>
 dropped_country
 ```
 
-The country where Netflix ceased operations the earliest is *`r dropped_country$country_name`* in the week of *`r dropped_country$max_week`*.
+The country where Netflix ceased operations the earliest is *`r highlight(dropped_country$country_name)`* in the week of *`r highlight(dropped_country$max_week)`*.
 
 **7.What is the total viewership of the TV show Squid Game? Note that there are three seasons total and we are looking for the total number of hours watched across all seasons.**
 
@@ -258,7 +283,7 @@ squid_game_viewership <- GLOBAL_TOP_10 |>
 squid_game_viewership
 ```
 
-The total viewership of the TV show *Squid Game* across all seasons is `r scales::comma(squid_game_viewership$total_hours)` hours.
+The total viewership of the TV show *Squid Game* across all seasons is `r highlight(scales::comma(squid_game_viewership$total_hours))` hours.
 
 **8.The movie Red Notice has a runtime of 1 hour and 58 minutes. Approximately how many views did it receive in 2021? Note that Netflix does not provide the weekly_views values that far back in the past, but you can compute it yourself using the total view time and the runtime.**
 
@@ -324,19 +349,19 @@ top_ten_debut <- COUNTRY_TOP_10 |>
 top_ten_debut
 ```
 
-The TV show that hit the top 10 in the most countries was *`r top_ten_debut$show_title`* , and it charted in *`r top_ten_debut$countries`* countries.
+The TV show that hit the top 10 in the most countries was *`r highlight(top_ten_debut$show_title)`* , and it charted in *`r highlight(top_ten_debut$countries)`* countries.
 
-# Press Releases
+## Press Releases
 
-## Press Release 1:
+### Press Release 1:
 
-### Stranger Things: A Global Phenomenon Returns for Final Season
+Stranger Things: A Global Phenomenon Returns for Final Season
 
 According to a 2025 Collider ranking, Season 4 of Stranger Things is widely regarded as the strongest of the first four seasons. This sets the tone for the highly anticipated final season arriving later this year. Stranger Things has really proven to be a truly global phenomenon. In the United States alone, it held a place in the Top 10 for 16 weeks, while internationally it achieved even greater: 24 weeks in Ukraine, 23 weeks in Pakistan, 21 weeks in India, and more than a dozen weeks across European countries like Belgium and France. It also showed success in African countries like Kenya and Nigeria. Compared to other popular English-language TV shows such as Wednesday and The Crown, Stranger Things remains one of Netflix’s most dominant hits. Globally it is surpassed only by Squid Game. With nearly 3 billion hours viewed worldwide, excitement for the last season is huge.
 
-## Press Release 2:
+### Press Release 2:
 
-### Netflix breakthrough in India
+Netflix breakthrough in India
 
 India is the world most populated country and has quickly become on of Netflix fastest growing market. TV shows and films in Hindi language continue their dominance in the country's top 10.Local TV and shows have stayed in the country's top 10 for numerous weeks. This prove the show broadest appeal to the domestic audience.
 
@@ -362,9 +387,9 @@ local_indian_hits
 
 "The Great Indian Kapil Show" remained in the India's Top 10 for 43 weeks, outperforming other international competitors. In the meantime ,several of the most successful domestic TV shows and Films have never appeared in the US Top 10. This demonstrates the value of programming specific to different regions in the world. With Netflix counting a lot on the success of international markets, India remains a key driver of the company's success at the international level.As Netflix continue to rely on international market, these results reaffirm the platform continued investment in India.
 
-## Press Release 3
+### Press Release 3
 
-### Netflix Announces New Africa Originals Hub in Nigeria
+Netflix Announces New Africa Originals Hub in Nigeria
 
 Nigeria is the most populous African country and home to Africa’s largest film industry (Nollywood) with a booming youth demographic. With more than 60% of its population under the age of 30, Nigeria represents one of the youngest, most dynamic entertainment markets in the world. The new generation generation, more tech savvy,is driving rapid growth both within Africa and abroad.
 
