@@ -14,7 +14,7 @@ execute:
   message: false
 ---
 
-![](images/top10Original.jpg){width="80%" height="auto" fig-align="center"}
+![](images/top10Original.jpg){width="100%" height="auto" fig-align="center"}
 
 ## Introduction
 
@@ -86,7 +86,7 @@ Let's examine the structure of the dataset
 ```{r}
 str(GLOBAL_TOP_10)
 ```
-
+Another way to examine the data can be done by using the `glimpse` function from the `dplyr` package.
 ```{r}
 glimpse(GLOBAL_TOP_10)
 ```
@@ -97,7 +97,9 @@ By looking at the structure above, we do have some missing values not formatted 
 
 ### Data Cleaning for the Global Top 10 dataset
 
+Let's format the missing values in the `season_title` column properly for R.
 ```{r}
+#|echo: false
 GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
   mutate(season_title = if_else(season_title == "N/A", NA, season_title))
 
@@ -110,7 +112,7 @@ Let's now confirm that the missing values are properly formatted for R.
 str(GLOBAL_TOP_10)
 ```
 
-Great, let's turn to our second dataset that we will use.
+Great, let's turn to our attention to the second dataset that we will use.
 
 ### Data cleaning for Country Top 10 dataset
 
@@ -123,11 +125,6 @@ glimpse(COUNTRY_TOP_10)
 
 We handle the missing values straight in the import phase in the `read_tsv`. We can see that missing values are format the way R wants it to.
 
-After viewing the head and tail of the data, we want to just gain better sense of the data. For that let's chose a random number of rows other than the head or tail of the data by using the sample function to select random rows.
-
-```{r}
-GLOBAL_TOP_10[sample(nrow(GLOBAL_TOP_10), 10), ]
-```
 
 ## Initial Data Exploration
 
