@@ -15,14 +15,10 @@ execute:
 ---
 
 ![](images/yimby.jpg){width="80%" height="auto" fig-align="center"}
+
 ## Introduction
-
-
-
-
-
-
-
+Housing affordability is a critical issue affecting millions of people across the United States.
+IN this project we will analyze various factors influencing housing affordability, including household income, rent prices, housing supply, and employment wages across different metropolitan areas (CBSAs) over time. WE will use data from the American Community Survey (ACS), Building Permits Survey, and Bureau of Labor Statistics (BLS), to construct indices to measure rent burden and housing stock growth. The insights derived from this analysis will help inform policy decisions and strategies to make housing more affordable for all.
 
 
 ## Data Acquisition
@@ -562,7 +558,6 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 
-
 # --- Build CBSA–year totals from WAGES ---
 health_emp <- WAGES %>%
   group_by(YEAR, FIPS) %>%
@@ -581,10 +576,11 @@ cbsa_names <- POPULATION %>%
 
 health_emp <- health_emp %>% left_join(cbsa_names, by = "std_cbsa")
 
-
-
 ggplot(health_emp, aes(x = total_emp, y = health_emp)) +
-  geom_point(alpha = 0.55) +
+  # Reduce overplotting with transparency and smaller points
+  geom_point(alpha = 0.35, size = 2, color = "blue") +
+  # Add regression line in black
+  geom_smooth(method = "lm", color = "black", se = FALSE, linewidth = 0.8) +
   scale_x_log10(labels = comma) +
   scale_y_log10(labels = comma) +
   facet_wrap(~ YEAR, ncol = 4) +
@@ -594,7 +590,16 @@ ggplot(health_emp, aes(x = total_emp, y = health_emp)) +
     x = "Total employment (log scale)",
     y = "Health care & social services employment (log scale)"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 9),
+    strip.text = element_text(size = 10, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(angle = 45, hjust = 1)
+  )
 
 ```
 ## Building Indices of Housing Affordability and Housing Stock Growth
@@ -683,7 +688,10 @@ print(
   rent_burden_data |>
     filter(year == max(year)) |>
     slice_max(rent_burden_index, n = 10) |>
-    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
+    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level) |>
+    format_titles() |> 
+    datatable(options = list(searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Household Income", "Monthly Rent", "Rent Burden Index", "Burden Level"))
 )
 
 cat("\n\nTop 10 Lowest Rent Burden (most recent year):\n")
@@ -691,7 +699,10 @@ print(
   rent_burden_data |>
     filter(year == max(year)) |>
     slice_min(rent_burden_index, n = 10) |>
-    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
+    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level) |> 
+    format_titles() |> 
+    datatable(options = list(searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Household Income", "Monthly Rent", "Rent Burden Index", "Burden Level"))
 )
 ```
 
@@ -764,10 +775,6 @@ national_growth_median <- housing_data |>
   summarise(median_growth = median(population_growth_5yr, na.rm = TRUE)) |>
   pull(median_growth)
 
-cat("National baseline statistics:\n")
-cat("  Median permits per year:", round(national_permits_median, 0), "\n")
-cat("  Median population:", round(national_pop_median, 0), "\n")
-cat("  Median 5-year population growth:", round(national_growth_median, 0), "\n\n")
 
 # Step 4: Construct Metric 1 - Instantaneous Housing Growth
 # Housing units per capita (permits relative to current population)
@@ -823,7 +830,6 @@ housing_data <- housing_data |>
   ) |>
   ungroup()
 
-cat("Metrics constructed. Displaying top and bottom performers...\n\n")
 
 # Step 8: Identify top and bottom CBSAs on Instantaneous Metric (most recent year)
 recent_year <- max(housing_data$year[housing_data$year_indicator == 1])
@@ -837,32 +843,36 @@ print(
     slice_max(instantaneous_metric, n = 10) |>
     select(NAME, year, population, new_housing_units_permitted, 
            permits_per_1000_pop, instantaneous_metric) |>
-    arrange(desc(instantaneous_metric))
+    arrange(desc(instantaneous_metric)) |> 
+    format_titles() |> 
+    datatable(options = list(searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"))
 )
 
-cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
-cat("INSTANTANEOUS METRIC - Bottom 10\n")
-cat(paste0(rep("=", 83), collapse = ""), "\n")
 print(
   housing_data |>
     filter(year == recent_year) |>
     slice_min(instantaneous_metric, n = 10) |>
     select(NAME, year, population, new_housing_units_permitted, 
            permits_per_1000_pop, instantaneous_metric) |>
-    arrange(instantaneous_metric)
+    arrange(instantaneous_metric) |>
+    format_titles() |> 
+    datatable(options = list(searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"))
 )
 
 # Step 9: Identify top and bottom CBSAs on Rate-Based Metric
-cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
-cat("RATE-BASED METRIC - Top 10 (Permits vs Population Growth)\n")
-cat(paste0(rep("=", 83), collapse = ""), "\n")
 print(
   housing_data |>
     filter(year == recent_year, !is.na(rate_based_metric)) |>
     slice_max(rate_based_metric, n = 10) |>
     select(NAME, year, population_growth_5yr, new_housing_units_permitted, 
            permits_to_growth_ratio, rate_based_metric) |>
-    arrange(desc(rate_based_metric))
+    arrange(desc(rate_based_metric)) |> 
+    format_titles() |> 
+    datatable(options = list(searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Permits To Growth Ratio", "Rate Based Metric"))
+
 )
 
 cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
@@ -874,7 +884,10 @@ print(
     slice_min(rate_based_metric, n = 10) |>
     select(NAME, year, population_growth_5yr, new_housing_units_permitted, 
            permits_to_growth_ratio, rate_based_metric) |>
-    arrange(rate_based_metric)
+    arrange(rate_based_metric) |>
+    format_titles() |> 
+    datatable(options = list(searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Permits To Growth Ratio", "Rate Based Metric"))
 )
 
 # Step 10: Identify top and bottom CBSAs on Composite Score
@@ -887,7 +900,10 @@ print(
     slice_max(composite_score_rolling, n = 10, na_rm = TRUE) |>
     select(NAME, year, instantaneous_metric, rate_based_metric, 
            composite_score, composite_score_rolling) |>
-    arrange(desc(composite_score_rolling))
+    arrange(desc(composite_score_rolling)) |> 
+    format_titles() |> 
+    datatable(options = list(pageLength = 10, searching = FALSE, info = FALSE)) |> 
+    formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"))
 )
 
 cat("\n", paste0(rep("=", 83), collapse = ""), "\n", sep = "")
@@ -899,7 +915,9 @@ print(
     slice_min(composite_score_rolling, n = 10, na_rm = TRUE) |>
     select(NAME, year, instantaneous_metric, rate_based_metric, 
            composite_score, composite_score_rolling) |>
-    arrange(composite_score_rolling)
+    format_titles() |>
+    datatable(options = list(searching = FALSE, info = FALSE)) |>
+    formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"))
 )
 
 ```
