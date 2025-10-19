@@ -97,7 +97,7 @@ By looking at the structure above, we do have some missing values not formatted 
 
 ### Data Cleaning for the Global Top 10 dataset
 
-Let's format the missing values in the `season_title` column properly for R.
+Let's format the missing values in the `season_title` and make sure they are properly formatted for R.
 ```{r}
 #|echo: false
 GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
@@ -106,15 +106,11 @@ GLOBAL_TOP_10 <- GLOBAL_TOP_10 |>
 str(GLOBAL_TOP_10)
 ```
 
-Let's now confirm that the missing values are properly formatted for R.
-
-```{r}
-str(GLOBAL_TOP_10)
-```
-
 Great, let's turn to our attention to the second dataset that we will use.
 
 ### Data cleaning for Country Top 10 dataset
+
+We handle the missing values straight in the import phase in the `read_tsv`. We can see that missing values are format the way R wants it to.
 
 ```{r}
 COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
@@ -122,8 +118,6 @@ COUNTRY_TOP_10 <- read_tsv(COUNTRY_TOP_10_FILENAME, na = "N/A")
 
 glimpse(COUNTRY_TOP_10)
 ```
-
-We handle the missing values straight in the import phase in the `read_tsv`. We can see that missing values are format the way R wants it to.
 
 
 ## Initial Data Exploration
