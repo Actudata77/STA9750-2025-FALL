@@ -804,8 +804,8 @@ instantaneous_top <- housing_data |>
   format_titles()
 
 datatable(instantaneous_top, 
-          options = list(searching = FALSE, info = FALSE, paging = FALSE),
-          caption = "Top 10 CBSAs - Instantaneous Housing Growth Metric") |>
+          caption = "Top 10 CBSAs - Instantaneous Housing Growth Metric",
+          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 9: Instantaneous Metric - Bottom 10
@@ -818,8 +818,8 @@ instantaneous_bottom <- housing_data |>
   format_titles()
 
 datatable(instantaneous_bottom,
-          options = list(searching = FALSE, info = FALSE, paging = FALSE),
-          caption = "Bottom 10 CBSAs - Instantaneous Housing Growth Metric") |>
+          caption = "Bottom 10 CBSAs - Instantaneous Housing Growth Metric",
+          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 10: Rate-Based Metric - Top 10
@@ -832,8 +832,8 @@ rate_based_top <- housing_data |>
   format_titles()
 
 datatable(rate_based_top,
-          options = list(searching = FALSE, info = FALSE, paging = FALSE),
-          caption = "Top 10 CBSAs - Rate-Based Housing Growth Metric") |>
+          caption = "Top 10 CBSAs - Rate-Based Housing Growth Metric",
+          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
@@ -847,8 +847,8 @@ rate_based_bottom <- housing_data |>
   format_titles()
 
 datatable(rate_based_bottom,
-          options = list(searching = FALSE, info = FALSE, paging = FALSE),
-          caption = "Bottom 10 CBSAs - Rate-Based Housing Growth Metric") |>
+          caption = "Bottom 10 CBSAs - Rate-Based Housing Growth Metric",
+          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
@@ -862,8 +862,8 @@ composite_top <- housing_data |>
   format_titles()
 
 datatable(composite_top,
-          options = list(searching = FALSE, info = FALSE, paging = FALSE),
-          caption = "Top 10 CBSAs - Composite Housing Growth Score") |>
+          caption = "Top 10 CBSAs - Composite Housing Growth Score",
+          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 
 # Step 13: Composite Score - Bottom 10
@@ -876,8 +876,8 @@ composite_bottom <- housing_data |>
   format_titles()
 
 datatable(composite_bottom,
-          options = list(searching = FALSE, info = FALSE, paging = FALSE),
-          caption = "Bottom 10 CBSAs - Composite Housing Growth Score") |>
+          caption = "Bottom 10 CBSAs - Composite Housing Growth Score",
+          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 ```
 The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline—such as New York, Los Angeles, and Chicago—show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. Conversely, smaller growing metros show more moderate ratios, suggesting their housing supply is more closely calibrated to population increases. When combined with the instantaneous metric (which measures permits relative to current population size), this composite score identifies which cities are genuinely meeting housing demand—those building enough homes for both existing residents and new population growth. Cities scoring highest on this composite measure are successfully balancing affordability pressures with supply expansion, while those scoring lowest face either restrictive zoning that suppresses building or declining demand that reduces construction incentives. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit activity responds to the specific demographic and economic context of each metropolitan area.
@@ -970,7 +970,12 @@ perfect_yimby <- yimby_criteria |> filter(yimby_score == 4)
 if (nrow(perfect_yimby) > 0) {
   print(perfect_yimby |> 
           select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
-                 population_growth_pct, avg_housing_growth))
+                 population_growth_pct, avg_housing_growth)) |>
+    format_titles() |> 
+    datatable(
+      options = list(searching = FALSE, info = FALSE, paging = FALSE)) |> 
+    formatRound(c("Early Rent Burden", "Rent Burden Change", 
+                  "Population Growth Pct", "Avg Housing Growth"), 2)
 } else {
   cat("No CBSAs meet all 4 criteria.\n")
 }
@@ -980,7 +985,21 @@ cat(paste0(rep("-", 83), collapse = ""), "\n")
 print(yimby_criteria |> 
         head(15) |>
         select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
-               population_growth_pct, avg_housing_growth))
+               population_growth_pct, avg_housing_growth)) |> 
+  format_titles() |> 
+  datatable(
+    options = list(searching = FALSE, info = FALSE, paging = FALSE)) |> 
+  formatRound(c("Early Rent Burden", "Rent Burden Change", 
+                "Population Growth Pct", "Avg Housing Growth"), 2)
+    
+      
+      
+      
+      
+  
+      
+      
+      
 
 # Visualization 1: Scatter plot of Rent Burden vs Housing Growth
 cat("\n\nCreating Visualization 1: Rent Burden vs Housing Growth\n")
