@@ -672,38 +672,26 @@ rent_burden_data <- rent_burden_raw |>
          annual_rent, raw_rent_to_income, rent_burden_index, burden_level) |>
   arrange(year, rent_burden_index)
 
-# Display summary statistics
-cat("Rent Burden Index Summary Statistics:\n")
-cat("=====================================\n")
-cat("Min:", round(min(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n")
-cat("Q1:", round(quantile(rent_burden_data$rent_burden_index, 0.25, na.rm = TRUE), 2), "\n")
-cat("Median:", round(median(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n")
-cat("Mean:", round(mean(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n")
-cat("Q3:", round(quantile(rent_burden_data$rent_burden_index, 0.75, na.rm = TRUE), 2), "\n")
-cat("Max:", round(max(rent_burden_data$rent_burden_index, na.rm = TRUE), 2), "\n\n")
-
-# Show examples of high and low burden CBSAs
-cat("Top 10 Highest Rent Burden (most recent year):\n")
-print(
-  rent_burden_data |>
-    filter(year == max(year)) |>
-    slice_max(rent_burden_index, n = 10) |>
-    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level) |>
-    format_titles() |> 
-    datatable(options = list(searching = FALSE, info = FALSE)) |> 
-    formatRound(c("Household Income", "Monthly Rent", "Rent Burden Index", "Burden Level"))
+# Calculate summary statistics for narrative text
+rent_burden_stats <- list(
+  min = round(min(rent_burden_data$rent_burden_index, na.rm = TRUE), 2),
+  q1 = round(quantile(rent_burden_data$rent_burden_index, 0.25, na.rm = TRUE), 2),
+  median = round(median(rent_burden_data$rent_burden_index, na.rm = TRUE), 2),
+  mean = round(mean(rent_burden_data$rent_burden_index, na.rm = TRUE), 2),
+  q3 = round(quantile(rent_burden_data$rent_burden_index, 0.75, na.rm = TRUE), 2),
+  max = round(max(rent_burden_data$rent_burden_index, na.rm = TRUE), 2)
 )
 
-cat("\n\nTop 10 Lowest Rent Burden (most recent year):\n")
-print(
-  rent_burden_data |>
-    filter(year == max(year)) |>
-    slice_min(rent_burden_index, n = 10) |>
-    select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level) |> 
-    format_titles() |> 
-    datatable(options = list(searching = FALSE, info = FALSE)) |> 
-    formatRound(c("Household Income", "Monthly Rent", "Rent Burden Index", "Burden Level"))
-)
+# Prepare tables for display
+top_10_highest <- rent_burden_data |>
+  filter(year == max(year)) |>
+  slice_max(rent_burden_index, n = 10) |>
+  select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
+
+top_10_lowest <- rent_burden_data |>
+  filter(year == max(year)) |>
+  slice_min(rent_burden_index, n = 10) |>
+  select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
 ```
 
 ### Housing Growth
