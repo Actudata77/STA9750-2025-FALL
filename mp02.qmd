@@ -306,7 +306,10 @@ Although the data are not fully normalized—some relationships, we have enough 
 library(dplyr)
 library(stringr)
 format_titles <- function(df) {
-  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  colnames(df) <- colnames(df) |>
+    str_replace_all("_", " ") |>
+    str_to_lower() |>          # first make all letters lowercase
+    str_to_title()             # then title-case properly
   df
 }
 
@@ -366,6 +369,7 @@ The state with the highest average individual income in 2015 was `r highlight(hi
 ```{r}
 
 library(dplyr)
+library(DT)
 
 # Filter WAGES data for data scientists (NAICS 5182) first
 wages_filtered <- WAGES |>
@@ -457,36 +461,51 @@ The fraction of total wages in the NYC CBSA earned by people employed in the fin
 
 ### Initial Visualizations
 
-**1. The relationship between monthly rent and average household income per CBSA in 2009 using ggplot**
+
+**1. The relationship between monthly rent and average household income per CBSA in 2009**
+
+
 ```{r monthly_rent_vs_income_2009}
 library(ggpmisc)
 library(ggplot2)
+library(dplyr)
+
 income_rent_2009 <- INCOME |> 
   filter(year == 2009) |> 
-  inner_join(RENT %>% filter(year == 2009), by = c("GEOID", "year"))
+  inner_join(RENT |> filter(year == 2009), by = c("GEOID", "year"))
+
 ggplot(income_rent_2009, aes(x = household_income, y = monthly_rent)) +
-  geom_point(color = "blue", alpha = 0.6) +
-  stat_poly_line(se = FALSE, 
-                 color = "red") +
-  stat_poly_eq()+
-  labs(title = "Monthly Rent vs. Average Household Income (2009)",
-       x = "Average Household Income",
-       y = "Monthly Rent") +
-  theme_bw()
+  geom_point(color = "#3498db", alpha = 0.6, size = 2) +
+  stat_poly_line(se = FALSE, color = "#e74c3c", linewidth = 1) +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label), 
+                                 after_stat(rr.label), sep = "~~~"))) +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(
+    title = "Monthly Rent vs. Average Household Income (2009)",
+    subtitle = "Each point represents a Core-Based Statistical Area (CBSA)",
+    x = "Average Household Income",
+    y = "Monthly Rent",
+    caption = "Source: American Community Survey (ACS)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text = element_text(size = 10)
+  )
 ```
-There's a clear positive correlation between average household income and monthly rent in 2009. As household income increases, the monthly rent tends to increase as well. The fitted regression line indicates that higher-income households generally pay higher rents, suggesting that rent prices are influenced by the income levels of residents in different CBSAs.
 
-The coefficient of determination (R²) of 0.58 indicates that approximately 58% of the variation in monthly rent can be explained by average household income. This translates to a correlation coefficient of r ≈ 0.76, suggesting a strong positive relationship.
+There is a clear positive correlation between average household income and monthly rent in 2009. As household income increases, monthly rent tends to increase as well. The fitted regression line indicates that higher-income households generally pay higher rents, suggesting that rent prices are influenced by the income levels of residents in different CBSAs. The coefficient of determination (R²) of approximately 0.58 indicates that about 58% of the variation in monthly rent can be explained by average household income, translating to a correlation coefficient of r ≈ 0.76, which suggests a strong positive relationship.
 
-
-
-**2. The relationship between total employment and total employment in the health care and social services sector (NAICS 62) across different CBSAs. Design your visualization so that it is possible to see the evolution of this relationship over time.**
+**2. The relationship between total employment and total employment in the health care and social services sector (NAICS 62) across different CBSAs. Design your visualization so that it is possible to see the evolution of this relationship over time **
 
 ```{r total_vs_healthcare_employment}
 library(dplyr)
 library(ggplot2)
 
-#  Step 1: Filter WAGES data for healthcare (NAICS 62) before joining
+# Step 1: Filter WAGES data for healthcare (NAICS 62) before joining
 healthcare_wages <- WAGES |>
   filter(INDUSTRY == 62) |>
   mutate(std_cbsa = paste0(FIPS, "0")) |>
@@ -508,100 +527,104 @@ employment_data <- total_employment |>
   ) |>
   mutate(healthcare_share = healthcare_employment / total_employment)
 
-employment_data_clean <- employment_data %>%
-  filter(total_employment > 0,
-         healthcare_employment > 0,
-         is.finite(total_employment),
-         is.finite(healthcare_employment))
-
-
-ggplot(employment_data_clean, aes(x = total_employment, y = healthcare_employment, color = YEAR)) +
-  geom_point(alpha = 0.6, size = 2) +
-  geom_smooth(method = "lm", formula = y ~ x, 
-              se = FALSE, alpha = 0.3, na.rm = TRUE) +
-  facet_wrap(~YEAR, scales = "free") +
-  scale_x_log10(
-  breaks = scales::trans_breaks("log10", function(x) 10^x, n = 5),
-  labels = scales::label_number(scale_cut = scales::cut_short_scale())
-) +
-scale_y_log10(
-  breaks = scales::trans_breaks("log10", function(x) 10^x, n = 5),
-  labels = scales::label_number(scale_cut = scales::cut_short_scale())
-)+
-
-  labs(
-    title = "Relationship Between Total Employment and Healthcare Employment by CBSA",
-    subtitle = "Evolution over time across different years",
-    x = "Total Employment (log scale)",
-    y = "Healthcare & Social Services Employment (log scale)",
-    color = "Year"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(size = 14, face = "bold"),
-    legend.position = "bottom"
+# Clean data
+employment_data_clean <- employment_data |>
+  filter(
+    total_employment > 0,
+    healthcare_employment > 0,
+    is.finite(total_employment),
+    is.finite(healthcare_employment)
   )
 
-```
-
-
-**3. The evolution of average household size over time. Use different lines to represent different CBSAs. For each plot, make sure your final visualization is publication-ready and equipped with, at a minimum.**
-
-- Proper x and y-axis axis labels
-- A meaningful title
-- Proper units for axis ticks (if appropriate)
-- Proper legend titles (if appropriate)
-- Proper font sizes so that all text is legible.
-
-```{r avg_household_size_evolution, warning=FALSE, message=FALSE}
-library(dplyr)
-library(ggplot2)
-library(scales)
-
-# --- Build CBSA–year totals from WAGES ---
-health_emp <- WAGES %>%
-  group_by(YEAR, FIPS) %>%
-  summarise(
-    total_emp  = sum(EMPLOYMENT, na.rm = TRUE),
-    health_emp = sum(EMPLOYMENT[INDUSTRY == 62], na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  filter(total_emp > 0) %>%                      # keep valid rows
-  mutate(std_cbsa = paste0(FIPS, "0"))           # to match Census IDs
-
-# (optional) add CBSA names for nicer plots/tooltips/filters
-cbsa_names <- POPULATION %>%
-  mutate(std_cbsa = paste0("C", GEOID)) %>%
-  distinct(std_cbsa, NAME)
-
-health_emp <- health_emp %>% left_join(cbsa_names, by = "std_cbsa")
-
-ggplot(health_emp, aes(x = total_emp, y = health_emp)) +
-  # Reduce overplotting with transparency and smaller points
-  geom_point(alpha = 0.35, size = 2, color = "blue") +
-  # Add regression line in black
-  geom_smooth(method = "lm", color = "black", se = FALSE, linewidth = 0.8) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10(labels = comma) +
-  facet_wrap(~ YEAR, ncol = 4) +
+# Create visualization
+ggplot(employment_data_clean, aes(x = total_employment, y = healthcare_employment, color = as.factor(YEAR))) +
+  geom_point(alpha = 0.6, size = 2) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, alpha = 0.3, linewidth = 0.8) +
+  facet_wrap(~YEAR, ncol = 4) +
+  scale_x_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n = 5),
+    labels = scales::label_number(scale_cut = scales::cut_short_scale())
+  ) +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n = 5),
+    labels = scales::label_number(scale_cut = scales::cut_short_scale())
+  ) +
   labs(
-    title = "Health Care & Social Services vs Total Employment across CBSAs",
-    subtitle = "Each panel is a year; log scales show the relationship across city sizes",
-    x = "Total employment (log scale)",
-    y = "Health care & social services employment (log scale)"
+    title = "Total Employment vs Healthcare Employment by CBSA",
+    subtitle = "Evolution over time (2009-2023); each panel represents one year",
+    x = "Total Employment (log scale)",
+    y = "Healthcare & Social Services Employment (log scale)",
+    caption = "Source: Bureau of Labor Statistics Quarterly Census of Employment and Wages"
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
     plot.subtitle = element_text(size = 11, hjust = 0.5),
-    axis.title = element_text(size = 10),
+    axis.title = element_text(size = 11, face = "bold"),
     axis.text = element_text(size = 9),
-    strip.text = element_text(size = 10, face = "bold"),
     axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.text.y = element_text(angle = 45, hjust = 1)
+    strip.text = element_text(size = 10, face = "bold"),
+    legend.position = "none"
+  )
+```
+
+The faceted visualization reveals a consistent positive relationship between total employment and healthcare employment across all years. The log-log scale allows us to observe this relationship across CBSAs of vastly different sizes. The linear relationship on the log scale suggests that healthcare employment scales proportionally with total employment across metropolitan areas. The consistency of this pattern across years indicates that healthcare represents a relatively stable share of total employment, regardless of overall metro size or economic conditions.
+
+**3. The evolution of average household size over time.Use different lines to represent different CBSAs**
+
+```{r avg_household_size_evolution, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(gghighlight)
+
+# Step 1: Calculate average household size over time for each CBSA
+household_size_data <- POPULATION |>
+  inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
+  mutate(avg_household_size = population / households)
+
+# Step 2: Create indicator for cities to highlight (NYC and LA)
+household_size_data <- household_size_data |>
+  mutate(
+    highlight_city = grepl("New York|Los Angeles", NAME, ignore.case = TRUE)
   )
 
+# Step 3: Create the highlighted spaghetti plot
+ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
+  geom_line(alpha = 0.6, linewidth = 0.8) +
+  gghighlight(
+    highlight_city,                    # Condition: which cities to highlight
+    use_direct_label = TRUE,           # Add city name labels directly on plot
+    label_key = NAME,                  # Use NAME column for labels
+    unhighlighted_params = list(       # Style for background (non-highlighted) lines
+      colour = alpha("gray70", 0.3),
+      linewidth = 0.5
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(2, 3.5, 0.25),
+    limits = c(2, 3.5)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2009, 2023, 2)
+  ) +
+  labs(
+    title = "Evolution of Average Household Size Over Time (2009-2023)",
+    subtitle = "New York and Los Angeles CBSAs highlighted; other metros shown in gray",
+    x = "Year",
+    y = "Average Household Size (persons per household)",
+    caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 9, hjust = 0, color = "gray40"),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text = element_text(size = 10),
+    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
+  )
 ```
+
 ## Building Indices of Housing Affordability and Housing Stock Growth
 
 We will begin by constructing an initial metric of rent affordability by combining our INCOME, RENT, and POPULATION tables from above. Using a suitable join, we merge these three into a single table which can be used to perform the following task.
