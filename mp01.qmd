@@ -134,7 +134,10 @@ The column names such as `weekly_hours_viewed` are not properly formatted. Large
 ```{r}
 library(stringr)
 format_titles <- function(df) {
-  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  colnames(df) <- colnames(df) |>
+    str_replace_all("_", " ") |>
+    str_to_lower() |>          # first make all letters lowercase
+    str_to_title()             # then title-case properly
   df
 }
 
