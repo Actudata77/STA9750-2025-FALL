@@ -570,36 +570,20 @@ ggplot(employment_data_clean, aes(x = total_employment, y = healthcare_employmen
 
 The faceted visualization reveals a consistent positive relationship between total employment and healthcare employment across all years. The log-log scale allows us to observe this relationship across CBSAs of vastly different sizes. The linear relationship on the log scale suggests that healthcare employment scales proportionally with total employment across metropolitan areas. The consistency of this pattern across years indicates that healthcare represents a relatively stable share of total employment, regardless of overall metro size or economic conditions.
 
-**3. The evolution of average household size over time.Use different lines to represent different CBSAs**
+**3. The evolution of average household size over time. Use different lines to represent different CBSAs**
 
 ```{r avg_household_size_evolution, warning=FALSE, message=FALSE}
 library(dplyr)
 library(ggplot2)
-library(gghighlight)
 
 # Step 1: Calculate average household size over time for each CBSA
 household_size_data <- POPULATION |>
   inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
   mutate(avg_household_size = population / households)
 
-# Step 2: Create indicator for cities to highlight (NYC and LA)
-household_size_data <- household_size_data |>
-  mutate(
-    highlight_city = grepl("New York|Los Angeles", NAME, ignore.case = TRUE)
-  )
-
-# Step 3: Create the highlighted spaghetti plot
-ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
-  geom_line(alpha = 0.6, linewidth = 0.8) +
-  gghighlight(
-    highlight_city,                    # Condition: which cities to highlight
-    use_direct_label = TRUE,           # Add city name labels directly on plot
-    label_key = NAME,                  # Use NAME column for labels
-    unhighlighted_params = list(       # Style for background (non-highlighted) lines
-      colour = alpha("gray70", 0.3),
-      linewidth = 0.5
-    )
-  ) +
+# Step 2: Create the spaghetti plot colored by CBSA
+ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID, color = GEOID)) +
+  geom_line(alpha = 0.5, linewidth = 0.6) +
   scale_y_continuous(
     breaks = seq(2, 3.5, 0.25),
     limits = c(2, 3.5)
@@ -609,7 +593,7 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
   ) +
   labs(
     title = "Evolution of Average Household Size Over Time (2009-2023)",
-    subtitle = "New York and Los Angeles CBSAs highlighted; other metros shown in gray",
+    subtitle = "Each line represents a different CBSA",
     x = "Year",
     y = "Average Household Size (persons per household)",
     caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19"
@@ -621,7 +605,8 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
     plot.caption = element_text(size = 9, hjust = 0, color = "gray40"),
     axis.title = element_text(size = 11, face = "bold"),
     axis.text = element_text(size = 10),
-    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
+    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3),
+    legend.position = "none"  # Too many CBSAs to show legend
   )
 ```
 
@@ -1161,3 +1146,63 @@ Public-private partnerships for mixed-income housing
 
 BOTTOM LINE
 This is a bipartisan opportunity to unlock housing supply in constrained metros while rewarding cities already doing it right. Data proves the model works in Austin, Denver, and other YIMBY leaders. Federal investment scales success and brings relief to working families paying unsustainable rent.
+
+### Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
+
+When visualizing the evolution of many units over time, overlapping line plots often become quite difficult to read, resulting in "spaghetti plots." A useful strategy is to highlight a small number of important lines while 'low-lighting' the other lines so that they only serve as a background of 'representative samples'. The `gghighlight` package provides tools for making this sort of plot.
+
+For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time.
+
+```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(gghighlight)
+
+# Step 1: Calculate average household size over time for each CBSA
+household_size_data <- POPULATION |>
+  inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
+  mutate(avg_household_size = population / households)
+
+# Step 2: Create indicator for cities to highlight (NYC and LA)
+household_size_data <- household_size_data |>
+  mutate(
+    highlight_city = grepl("New York|Los Angeles", NAME, ignore.case = TRUE)
+  )
+
+# Step 3: Create the highlighted spaghetti plot
+ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
+  geom_line(alpha = 0.6, linewidth = 0.8) +
+  gghighlight(
+    highlight_city,                    # Condition: which cities to highlight
+    use_direct_label = TRUE,           # Add city name labels directly on plot
+    label_key = NAME,                  # Use NAME column for labels
+    unhighlighted_params = list(       # Style for background (non-highlighted) lines
+      colour = alpha("gray70", 0.3),
+      linewidth = 0.5
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(2, 3.5, 0.25),
+    limits = c(2, 3.5)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2009, 2023, 2)
+  ) +
+  labs(
+    title = "Evolution of Average Household Size Over Time (2009-2023)",
+    subtitle = "New York and Los Angeles CBSAs highlighted; other metros shown in gray",
+    x = "Year",
+    y = "Average Household Size (persons per household)",
+    caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 9, hjust = 0, color = "gray40"),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text = element_text(size = 10),
+    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
+  )
+```
+
