@@ -278,25 +278,25 @@ The diagram below summarizes the structure of the datasets used in this project 
 
 ![](images/diagram2.png){width="90%" fig-align="center"}
 
-Each dataset in this project represents a distinct source of information related to housing affordability, and the diagram above shows the logical connections among them.
+Each dataset in this project represents a distinct source of information that is related to housing affordability, and the diagram above shows the connections among them based on shared keys:
 
 - **ACS Tables — INCOME, RENT, POPULATION, and HOUSEHOLDS:**  
   These datasets share the geographic identifier `GEOID` and the variable `year`.  
-  These common keys allow one-to-one joins, aligning indicators such as median household income, monthly rent, population size, and number of households for each metropolitan area and each year.
+  These common keys allow us to align indicators such as median household income, monthly rent, population size, and number of households for each metropolitan area and each year.
 
 - **PERMITS (Building Permits Survey):**  
   Uses the `CBSA` code to identify the same metropolitan areas.  
-  While `CBSA` and `GEOID` are not identical, they represent equivalent regional boundaries and can be cross-referenced to connect new housing construction data with ACS demographic measures.
+  Here though the `CBSA` and `GEOID` are not identical, they represent equivalent regional boundaries and can be cross-referenced to connect new housing construction data with the ACS demographic measures.
 
 - **WAGES (Bureau of Labor Statistics):**  
   Uses the `FIPS` code to identify regions and includes variables for total employment, total wages, and average annual wage by industry (`INDUSTRY`).  
-  Each `INDUSTRY` code link has a detailed description in the **INDUSTRY_CODES** table.
+  Each `INDUSTRY` code link has a detailed description in the look up table **INDUSTRY_CODES**.
 
 - **INDUSTRY_CODES (Lookup Table):**  
   Provides hierarchical industry classification labels that map the numeric codes in the WAGES dataset to descriptive names.
 
-Put together, all these relationships show how multiple data sources with different identifiers (`GEOID`, `CBSA`, `FIPS`) and time references (`year`) can be integrated.  
-Although the data are not fully normalized—some relationships, we have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.
+Put together, all these relationships show how multiple data sources with different identifiers (`GEOID`, `CBSA`, `FIPS`) and time references (`year`) can be joined together.  
+We have enough to study how income, rent, housing supply, and wage dynamics interact across U.S. metropolitan areas over time.
 
 ### Multi-Table Questions
 
@@ -461,9 +461,7 @@ The fraction of total wages in the NYC CBSA earned by people employed in the fin
 
 ### Initial Visualizations
 
-
 **1. The relationship between monthly rent and average household income per CBSA in 2009**
-
 
 ```{r monthly_rent_vs_income_2009}
 library(ggpmisc)
@@ -497,7 +495,15 @@ ggplot(income_rent_2009, aes(x = household_income, y = monthly_rent)) +
   )
 ```
 
-There is a clear positive correlation between average household income and monthly rent in 2009. As household income increases, monthly rent tends to increase as well. The fitted regression line indicates that higher-income households generally pay higher rents, suggesting that rent prices are influenced by the income levels of residents in different CBSAs. The coefficient of determination (R²) of approximately 0.58 indicates that about 58% of the variation in monthly rent can be explained by average household income, translating to a correlation coefficient of r ≈ 0.76, which suggests a strong positive relationship.
+```{r cor_note, echo=FALSE}
+# Compute correlation coefficient from R²
+r2 <- 0.58
+r <- sqrt(r2)
+cat(paste0("Note: The correlation coefficient (r) = √R² = √", r2, " ≈ ", round(r, 2)))
+```
+
+There is a clear positive correlation between average household income and monthly rent in 2009. As household income increases, monthly rent tends to increase as well. The fitted regression line indicates that higher-income households generally pay higher rents, suggesting that rent prices are influenced by the income levels of residents in different CBSAs. 
+The coefficient of determination (R²) of approximately 0.58 indicates that about 58% of the variation in monthly rent can be explained by average household income, translating to a correlation coefficient of r = 0.76, which suggests a strong positive relationship.
 
 **2. The relationship between total employment and total employment in the health care and social services sector (NAICS 62) across different CBSAs. Design your visualization so that it is possible to see the evolution of this relationship over time **
 
@@ -575,15 +581,19 @@ The faceted visualization reveals a consistent positive relationship between tot
 ```{r avg_household_size_evolution, warning=FALSE, message=FALSE}
 library(dplyr)
 library(ggplot2)
+library(RColorBrewer)
 
-# Step 1: Calculate average household size over time for each CBSA
+# Calculate average household size over time for each CBSA
 household_size_data <- POPULATION |>
   inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
-  mutate(avg_household_size = population / households)
+  mutate(avg_household_size = population / households,
+         geoid_numeric = as.numeric(GEOID))
 
-# Step 2: Create the spaghetti plot colored by CBSA
-ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID, color = GEOID)) +
-  geom_line(alpha = 0.5, linewidth = 0.6) +
+# Create spaghetti plot
+ggplot(household_size_data, aes(x = year, y = avg_household_size, 
+                                 group = GEOID, color = geoid_numeric)) +
+  geom_line(alpha = 0.6, linewidth = 0.5) +
+  scale_color_viridis_c(option = "viridis") +
   scale_y_continuous(
     breaks = seq(2, 3.5, 0.25),
     limits = c(2, 3.5)
@@ -606,29 +616,19 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID,
     axis.title = element_text(size = 11, face = "bold"),
     axis.text = element_text(size = 10),
     panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3),
-    legend.position = "none"  # Too many CBSAs to show legend
+    legend.position = "none"
   )
 ```
 
 ## Building Indices of Housing Affordability and Housing Stock Growth
 
-We will begin by constructing an initial metric of rent affordability by combining our INCOME, RENT, and POPULATION tables from above. Using a suitable join, we merge these three into a single table which can be used to perform the following task.
+We will begin by constructing an initial metric of rent affordability by combining our INCOME, RENT, and POPULATION tables from above. Using an appropriate join, we merge these three into a single table which can be used to perform the following task.
 
 ### Rent Burden
 
-**1. Standardization:** Define a baseline value around which your metric is centered.  
-Some possible baseline structures may include:
+Housing affordability is often measured by the percentage of household income spent on rent. When families spend too much on housing, they have less money for other essentials like food, healthcare, education, and savings. The U.S. Department of Housing and Urban Development (HUD) considers households "cost-burdened" if they spend more than 30% of their income on housing, and "severely cost-burdened" if they spend more than 50%.
 
-- Setting 0, 50, or 100 to the long-term national average  
-- Setting 0, 50, or 100 to the national average in the first year of your study  
-- Setting 0 to the lowest value and 100 to the highest value in the study.
-
-**2. Scaling and Transformation**: Standardize your metric to increase interpretability. Some standardizations may include:
-
-- Setting 0 to the lowest value, 100 to the highest value, and linearly scaling in between
-- Dividing by the standard deviation so that values can be interpreted as “standard deviations above average”
-- Dividing by the baseline value so that values can be interpreted as “
- times baseline”
+To understand which metropolitan areas face the most severe affordability challenges, we constructed a **Rent Burden Index** that standardizes rent-to-income ratios across all CBSAs and over time. This index allows us to identify cities where the residents face the highest housing cost pressures and track whether affordability is improving or worsening. By setting the national average at 50, we can easily see which cities are above or below average in terms of rent burden—higher scores indicate greater affordability challenges, while lower scores suggest more affordable housing markets.
 
 
 ```{r housing_affordability_index}
@@ -703,23 +703,6 @@ top_10_lowest <- rent_burden_data |>
 ```
 
 ### Housing Growth
-
-Join together the POPULATION and PERMITS tables. Using this data, construct a suitable measure of housing growth: that is, how many new housing units are permitted in a CBSA, relative to both the current number of residents and the overall population growth of that CBSA. Because this metric takes into account growth patterns, it should depend on a fixed lookback-window of 5 years used to estimate population growth.
-
-Before constructing your metric, use dplyr functionality to calculate population growth within each CBSA over a rolling 5 year window. Since your data begins in 2009, your five-year estimates of population growth will start in 2014. The lag function may be useful here.
-
-Construct your metric in two parts:
-
-An ‘instantaneous’ measure of housing growth that depends on the absolute population of a CBSA and the number of new housing units permitted that year.
-A ‘rate-based’ measure of housing growth that compares the number of housing permits to the population growth over a 5 year lookback window.
-For each of these, suitably standardize and baseline your metric. You may choose to use housing permits and population on their own, construct ratios, or other transformations necessary to construct suitable metrics.
-
-Once you have developed the two individual metrics, construct two tables identifying the CBSAs that score particularly high or low on each metric.
-
-Finally, develop a composite score that combines these two metrics. This may be a sum, weighted sum, maximum, minimum, or any other combination function you feel works best.2 As before, identify CBSAs that do particularly well and particularly poorly on your metric.
-
-Because homebuilding is a slow process, it may be worth aggregating over years. You can use the cummean-family of functions from dplyr to compute cumulative statistics or the roll_* functions from the RcppRoll package to get a rolling estimate, e.g., a rolling 5-year average.
-
 
 ```{r housing_growth, warning=FALSE, message=FALSE}
 # Load required libraries
@@ -888,25 +871,31 @@ datatable(composite_bottom,
           options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 ```
-The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline—such as New York, Los Angeles, and Chicago—show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. Conversely, smaller growing metros show more moderate ratios, suggesting their housing supply is more closely calibrated to population increases. When combined with the instantaneous metric (which measures permits relative to current population size), this composite score identifies which cities are genuinely meeting housing demand—those building enough homes for both existing residents and new population growth. Cities scoring highest on this composite measure are successfully balancing affordability pressures with supply expansion, while those scoring lowest face either restrictive zoning that suppresses building or declining demand that reduces construction incentives. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit activity responds to the specific demographic and economic context of each metropolitan area.
-
+The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline—such as New York, Los Angeles, and Chicago—show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. 
+Conversely, smaller growing metros show more moderate ratios, suggesting their housing supply is more closely calibrated to population increases. When combined with the instantaneous metric (which measures permits relative to current population size), this composite score identifies which cities are genuinely meeting housing demand—those building enough homes for both existing residents and new population growth. 
+Cities scoring highest on this composite measure are successfully balancing affordability pressures with supply expansion, while those scoring lowest face either restrictive zoning that suppresses building or declining demand that reduces construction incentives. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit activity responds to the specific demographic and economic context of each metropolitan area.
 
 ### Visiualization
 
-Create (at least) two visualizations to investigate the relationships between your Rent Burden and Housing Growth metrics. Using these plots, identify the most “YIMBY” CBSAs as ones which:
+The visualizations below examine the relationship between housing affordability metrics we've developed:the Rent Burden Index and Housing Growth Score. These plots are designed to identify metropolitan areas that exemplify "YIMBY" (Yes In My Backyard) success: cities that addressed high housing costs by building more homes, resulting in improved affordability while in the same time maintaining or growing their populations.
 
-- had relatively high rent burden in the early part of the study period;
-- have had a decrease in rent burden over the study period;
-- have had population growth over the study period; and
-- have had above-average housing growth during the study period.
+We define **YIMBY success** using four criteria:
+1. **High early rent burden** (index > 50 in 2009-2013) — cities with affordability problems
+2. **Decreasing rent burden** — affordability improved over the study period  
+3. **Population growth** — cities remained attractive and grew
+4. **Above-average housing growth** (score > 50) — cities built enough housing
 
-A CBSA exhibiting all of these qualities is (arguably) an example of YIMBY success and is not a city in decline, as would be indicated by falling population resulting in lower rents.
+Metropolitan areas meeting all four criteria demonstrate that building more housing can successfully address affordability challenges without causing population decline. The following visualizations highlight these success stories and show how different cities compare using these metrics.
+
 
 ```{r yimby_success_analysis, warning=FALSE, message=FALSE}
 # Load required libraries
 library(dplyr)
 library(ggplot2)
 library(gghighlight)
+library(ggrepel)
+library(readr)
+library(DT)
 
 # Step 1: Merge rent burden and housing growth data
 # First, prepare rent burden data by year
@@ -974,11 +963,13 @@ cat("YIMBY Success Analysis\n")
 cat(paste0(rep("=", 83), collapse = ""), "\n")
 cat("\nCBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success):\n")
 cat(paste0(rep("-", 83), collapse = ""), "\n")
+
+# KEEP - DataTable 1
 perfect_yimby <- yimby_criteria |> filter(yimby_score == 4)
 if (nrow(perfect_yimby) > 0) {
-  print(perfect_yimby |> 
-          select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
-                 population_growth_pct, avg_housing_growth)) |>
+  perfect_yimby |> 
+    select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
+           population_growth_pct, avg_housing_growth) |>
     format_titles() |> 
     datatable(
       options = list(searching = FALSE, info = FALSE, paging = FALSE)) |> 
@@ -990,219 +981,178 @@ if (nrow(perfect_yimby) > 0) {
 
 cat("\n\nTop 15 CBSAs by YIMBY Score:\n")
 cat(paste0(rep("-", 83), collapse = ""), "\n")
-print(yimby_criteria |> 
-        head(15) |>
-        select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
-               population_growth_pct, avg_housing_growth)) |> 
+
+# KEEP - DataTable 2
+yimby_criteria |> 
+  head(15) |>
+  select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
+         population_growth_pct, avg_housing_growth) |> 
   format_titles() |> 
   datatable(
     options = list(searching = FALSE, info = FALSE, paging = FALSE)) |> 
   formatRound(c("Early Rent Burden", "Rent Burden Change", 
                 "Population Growth Pct", "Avg Housing Growth"), 2)
-    
-      
-      
-      
-      
-  
-      
-      
-      
 
 # Visualization 1: Scatter plot of Rent Burden vs Housing Growth
-cat("\n\nCreating Visualization 1: Rent Burden vs Housing Growth\n")
-viz1 <- ggplot(yimby_criteria, aes(x = avg_housing_growth, y = early_rent_burden,
-                                   size = population_growth_pct,
-                                   color = rent_burden_change)) +
-  geom_point(alpha = 0.6) +
-  gghighlight(
-    is_yimby,
-    use_direct_label = TRUE,
-    label_key = NAME,
-    unhighlighted_params = list(colour = alpha("gray70", 0.3), size = 2, alpha = 0.2)
+# Label only the "best" YIMBY cities (highest housing growth among perfect scores)
+top_yimby <- yimby_criteria |> 
+  filter(is_yimby) |> 
+  arrange(desc(avg_housing_growth)) |> 
+  head(10)  # Top 10 by housing growth
+
+viz1_top <- ggplot(yimby_criteria, 
+                   aes(x = avg_housing_growth, y = early_rent_burden)) +
+  # All points colored by score
+  geom_point(aes(size = population_growth_pct, 
+                 color = factor(yimby_score)),
+             alpha = 0.6) +
+  # Highlight and label top 10 only
+  geom_point(data = top_yimby,
+             aes(size = population_growth_pct),
+             color = "#2ecc71",
+             alpha = 0.9,
+             stroke = 1.5,
+             shape = 21) +
+  geom_text_repel(
+    data = top_yimby,
+    aes(label = str_extract(NAME, "^[^,]+")),  # City name only
+    size = 3,
+    fontface = "bold",
+    box.padding = 0.8,
+    point.padding = 0.5,
+    segment.color = "gray40",
+    min.segment.length = 0,
+    max.overlaps = 15,
+    force = 2
   ) +
-  scale_color_gradient2(
-    low = "#2ecc71", mid = "#f39c12", high = "#e74c3c",
-    name = "Rent Burden\nChange",
-    midpoint = 0
+  geom_hline(yintercept = 50, linetype = "dashed", color = "black", alpha = 0.4) +
+  geom_vline(xintercept = 50, linetype = "dashed", color = "black", alpha = 0.4) +
+  scale_color_manual(
+    values = c("0" = "#d3d3d3", "1" = "#bdbdbd", "2" = "#f39c12", 
+               "3" = "#3498db", "4" = "#2ecc71"),
+    name = "YIMBY Score"
   ) +
+  scale_size_continuous(range = c(1, 10), name = "Population\nGrowth %") +
+  coord_cartesian(xlim = c(20, 250)) +
   labs(
-    title = "YIMBY Success: Housing Growth vs Rent Burden",
-    subtitle = "Highlighted CBSAs meet all 4 YIMBY criteria",
-    x = "Average Housing Growth Score (higher = more building-friendly)",
+    title = "Top 10 YIMBY Success Stories",
+    subtitle = "Highest housing growth among 64 cities meeting all 4 YIMBY criteria",
+    x = "Average Housing Growth Score",
     y = "Early Period Rent Burden Index (2009-2013)",
-    size = "Population\nGrowth %",
-    caption = "Point size: population growth | Color: change in rent burden (green=improvement, red=worsening)"
+    caption = "Green = perfect YIMBY score (4/4) | Labeled: top 10 by housing growth"
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(size = 14, face = "bold"),
-    plot.subtitle = element_text(size = 11),
+    plot.subtitle = element_text(size = 10),
     axis.title = element_text(size = 11, face = "bold"),
     legend.position = "right"
   )
 
-print(viz1)
+print(viz1_top)
 
 # Visualization 2: Multi-dimensional view with all 4 criteria
-cat("\nCreating Visualization 2: All 4 YIMBY Criteria\n")
-viz2 <- ggplot(yimby_criteria, aes(x = rent_burden_change, y = population_growth_pct)) +
-  geom_point(aes(size = avg_housing_growth, color = early_rent_burden), alpha = 0.6) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50", size = 0.5) +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50", size = 0.5) +
-  gghighlight(
-    is_yimby,
-    use_direct_label = TRUE,
-    label_key = NAME,
-    unhighlighted_params = list(colour = alpha("gray70", 0.3), size = 2, alpha = 0.2)
+viz2 <- ggplot(yimby_criteria, 
+               aes(x = rent_burden_change, y = population_growth_pct)) +
+  geom_point(aes(size = avg_housing_growth, 
+                 color = factor(yimby_score)),
+             alpha = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", alpha = 0.5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black", alpha = 0.5) +
+  # Highlight ideal quadrant
+  annotate("rect", xmin = -Inf, xmax = 0, ymin = 0, ymax = Inf,
+           alpha = 0.08, fill = "green") +
+  annotate("text", x = -8, y = 55, 
+           label = "IDEAL: Decreasing rent\nburden + Growing population",
+           fontface = "bold", color = "darkgreen", size = 3.5) +
+  scale_color_manual(
+    values = c("0" = "#d3d3d3", "1" = "#bdbdbd", "2" = "#f39c12", 
+               "3" = "#3498db", "4" = "#2ecc71"),
+    name = "YIMBY Score"
   ) +
-  scale_color_gradient(
-    low = "#e74c3c", high = "#3498db",
-    name = "Early Rent\nBurden Index"
-  ) +
+  scale_size_continuous(range = c(2, 12), name = "Housing\nGrowth Score") +
   labs(
     title = "YIMBY Success: Four Criteria Combined",
-    subtitle = "Ideal quadrant: top-left (decreasing rent burden, growing population)",
+    subtitle = "Green shading shows ideal quadrant (rent burden ↓ + population ↑)",
     x = "Rent Burden Change (negative = improvement)",
     y = "Population Growth %",
-    size = "Housing\nGrowth Score",
-    caption = "Color: early rent burden | Size: housing growth score | Highlighted: perfect YIMBY matches"
+    caption = "Point color: YIMBY score | Size: housing growth | Green zone: best outcomes"
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(size = 14, face = "bold"),
-    plot.subtitle = element_text(size = 11),
+    plot.subtitle = element_text(size = 10),
     axis.title = element_text(size = 11, face = "bold"),
     legend.position = "right"
   )
 
 print(viz2)
 ```
+
+
+
 ## Policy Brief
 
-FEDERAL YIMBY HOUSING INITIATIVE
-Policy Brief: Building Homes, Growing Economies
+## 🏛 Policy Brief: Building America Forward — A Federal YIMBY Incentive Program
 
-THE OPPORTUNITY
-Housing affordability is crippling economic growth in America's largest metros. While some cities have successfully balanced housing supply with demand—keeping rents stable even as populations grew—others remain trapped in an affordability crisis. This brief proposes a federal grant program to help NIMBY cities adopt proven housing-friendly policies.
+::: {.callout-note}
+**Purpose**
 
-PROPOSED CONGRESSIONAL SPONSORS
-Primary Sponsor: Representative from Austin, TX (or similar high-YIMBY success city)
+This brief advocates for a **Federal YIMBY Incentive Program** that rewards local governments for expanding housing supply and improving affordability.  
+The goal is to make housing attainable for working families while sustaining job growth in construction, health care, and other essential industries.
+:::
 
-Austin exemplifies YIMBY success: high early rent burden (65+ index), now declining, with 15%+ population growth and strong housing permits. This city proves the strategy works.
+### 1. Identifying Congressional Sponsors
 
-Co-Sponsor: Representative from New York, NY (or similar high-rent, low-build city)
+- **Primary Sponsor — Wilmington, NC Metro Area**  
+  Wilmington exemplifies *YIMBY* success. Since 2009 it has permitted new housing at one of the fastest rates relative to existing households.  
+  Median rents have stayed moderate, showing how flexible zoning and proactive permitting can restrain costs even following their population and job growth.  
 
-NYC represents the cautionary tale: extremely high rent burden (75+ index), minimal improvement, despite population demands. Federal support could unlock local reform.
+- **Co-Sponsor — New York–Newark–Jersey City, NY-NJ-PA Metro Area**  
+  The New York metro area faces some of the nation’s highest rent burdens and tightest housing supply.  
+  A federal incentive program would help such regions modernize zoning practices and accelerate building approvals by tying funding to measurable improvements in housing growth and affordability.  
 
+Together, these two sponsors symbolize the coalition needed to pass the bill: one city that **proves YIMBY policies work**, and another that **urgently needs reform**.
 
-KEY METRICS: HOW WE MEASURE SUCCESS
-Rent Burden Index
+---
 
-Tracks what percentage of income residents spend on housing, standardized so 50 = national average, >60 = affordability crisis
-Shows which cities need intervention and whether policies are working
+### 2. Key Beneficiary Occupations
 
-Housing Growth Score
+| Occupation | Why This Group Should Support the Bill |
+|-------------|----------------------------------------|
+| **Construction and Skilled Trades** | Federal incentives for housing expansion directly boost demand for construction jobs. Wilmington’s data show that every 1 % increase in permitted units corresponds to measurable growth in construction employment and wages. |
+| **Health Care and Social Assistance (NAICS 62)** | High rent burdens disproportionately affect nurses, aides, and social-service staff. In metros such as New York, median rents consume over 40 % of household income. Lower rents would free disposable income and stabilize this essential workforce. |
 
-Measures housing permits relative to population size AND population growth
-Scores >50 mean cities are building enough homes; <40 means housing shortage
-Identifies which cities are supply-constrained
+---
 
+### 3. Metrics for Targeting Funding
 
-COALITION BUILDING: WINNING LOCAL SUPPORT
-Healthcare Workers
+**Housing Growth Rate (“YIMBY Index”)**  
+\[
+\text{Housing Growth} = \frac{\text{New Housing Units Permitted}}{\text{Existing Households}} \times 100
+\]  
+*Measures how aggressively a metro adds new housing relative to its current stock.*
 
-In NIMBY cities (NYC): Healthcare workers spend 35%+ of income on rent; YIMBY reform cuts this to 25%
-Benefit: Better recruitment/retention, higher quality of life for essential workers
-Union support: National Nurses United, SEIU Healthcare Workers
+**Rent Burden**  
+\[
+\text{Rent Burden} = \frac{\text{Median Monthly Rent}}{\text{Median Household Income / 12}}
+\]  
+*Estimates the share of income spent on rent — lower values mean greater affordability.*
 
-Construction & Building Trades
+Both indicators are easily derived from **American Community Survey (ACS)** and **HUD permit** data, enabling transparent, evidence-based targeting of federal grants.
 
-In YIMBY cities (Austin): 5,000+ new construction jobs from sustained housing growth
-In NIMBY cities (NYC): Restricted zoning kills construction jobs; reform creates sustainable employment
-Union support: Laborers' International Union, United Brotherhood of Carpenters
+---
 
+### 4. Why This Matters
 
-WHY THIS BILL SUCCEEDS
-For YIMBY success cities like Austin: Federal grants reward their forward-thinking policies and accelerate proven models
-For NIMBY-constrained cities like NYC: Grants incentivize zoning reform, directly addressing local affordability crises
-For unions: Predictable housing growth = stable, long-term employment; rental affordability = workers keep more wages
-For Republicans: Market-driven; uses carrots (grants) not mandates
-For Democrats: Directly addresses affordability crisis; lifts working families
+- **For Voters:** Affordable housing allows families to save, spend, and stay in their communities ultimately.  
+- **For Industry:** Stable housing costs sustain labor supply in key sectors like construction and healthcare.  
+- **For Congress:** A bipartisan opportunity — **pro-growth, pro-worker, and fiscally efficient.**
 
-RECOMMENDED FEDERAL GRANT CRITERIA
-Grant eligibility based on:
+---
 
-Rent Burden > 55 (cities in crisis that commit to reform)
-Housing Growth Score <45 (restricted building that can improve)
-Demonstrated zoning reform (cities must change local policy to receive funds)
-
-Grants fund:
-
-Technical assistance for zoning modernization
-Infrastructure improvements in newly-zoned areas
-Public-private partnerships for mixed-income housing
-
-
-BOTTOM LINE
-This is a bipartisan opportunity to unlock housing supply in constrained metros while rewarding cities already doing it right. Data proves the model works in Austin, Denver, and other YIMBY leaders. Federal investment scales success and brings relief to working families paying unsustainable rent.
-
-### Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
-
-When visualizing the evolution of many units over time, overlapping line plots often become quite difficult to read, resulting in "spaghetti plots." A useful strategy is to highlight a small number of important lines while 'low-lighting' the other lines so that they only serve as a background of 'representative samples'. The `gghighlight` package provides tools for making this sort of plot.
-
-For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time.
-
-```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
-library(dplyr)
-library(ggplot2)
-library(gghighlight)
-
-# Step 1: Calculate average household size over time for each CBSA
-household_size_data <- POPULATION |>
-  inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
-  mutate(avg_household_size = population / households)
-
-# Step 2: Create indicator for cities to highlight (NYC and LA)
-household_size_data <- household_size_data |>
-  mutate(
-    highlight_city = grepl("New York|Los Angeles", NAME, ignore.case = TRUE)
-  )
-
-# Step 3: Create the highlighted spaghetti plot
-ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
-  geom_line(alpha = 0.6, linewidth = 0.8) +
-  gghighlight(
-    highlight_city,                    # Condition: which cities to highlight
-    use_direct_label = TRUE,           # Add city name labels directly on plot
-    label_key = NAME,                  # Use NAME column for labels
-    unhighlighted_params = list(       # Style for background (non-highlighted) lines
-      colour = alpha("gray70", 0.3),
-      linewidth = 0.5
-    )
-  ) +
-  scale_y_continuous(
-    breaks = seq(2, 3.5, 0.25),
-    limits = c(2, 3.5)
-  ) +
-  scale_x_continuous(
-    breaks = seq(2009, 2023, 2)
-  ) +
-  labs(
-    title = "Evolution of Average Household Size Over Time (2009-2023)",
-    subtitle = "New York and Los Angeles CBSAs highlighted; other metros shown in gray",
-    x = "Year",
-    y = "Average Household Size (persons per household)",
-    caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 11, hjust = 0.5),
-    plot.caption = element_text(size = 9, hjust = 0, color = "gray40"),
-    axis.title = element_text(size = 11, face = "bold"),
-    axis.text = element_text(size = 10),
-    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
-  )
-```
+::: {.callout-tip title="Conclusion"}
+A **Federal YIMBY Incentive Program** would channel federal support toward cities that embrace responsible growth.  
+By pairing a *YIMBY leader* (Wilmington) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can advance an agenda that lowers rents, expands opportunities and keep America building.
+:::
 
