@@ -270,8 +270,6 @@ WAGES <- get_bls_qcew_annual_averages()
 
 ## Data Integration and Initial Exploration
 
-
-
 ### Extra Credit Opportunity #01: Relationship Diagram
 
 The diagram below summarizes the structure of the datasets used in this project and the relationships among them.
@@ -305,13 +303,11 @@ We have enough to study how income, rent, housing supply, and wage dynamics inte
 ```{r}
 library(dplyr)
 library(stringr)
-format_titles <- function(df) {
-  colnames(df) <- colnames(df) |>
-    str_replace_all("_", " ") |>
-    str_to_lower() |>          # first make all letters lowercase
-    str_to_title()             # then title-case properly
-  df
+format_titles <- function(df){
+  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  return(df)
 }
+
 
 largest_cbsa <- PERMITS |> 
   filter(year >= 2010 & year <= 2019) |> 
@@ -1139,7 +1135,7 @@ Together, these two sponsors symbolize the coalition needed to pass the bill: on
 \]  
 *Estimates the share of income spent on rent — lower values mean greater affordability.*
 
-Both indicators are easily derived from **American Community Survey (ACS)** and **HUD permit** data, enabling transparent, evidence-based targeting of federal grants.
+Both indicators are easily derived from **American Community Survey (ACS)** enabling transparent, evidence-based targeting of federal grants.
 
 ---
 
@@ -1156,3 +1152,78 @@ A **Federal YIMBY Incentive Program** would channel federal support toward citie
 By pairing a *YIMBY leader* (Wilmington) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can advance an agenda that lowers rents, expands opportunities and keep America building.
 :::
 
+### Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
+
+For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time and low-lighted the other lines.
+
+```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(gghighlight)
+
+household_size_data <- POPULATION |>
+  inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
+  mutate(avg_household_size = population / households)
+
+# Include ALL NYC and LA GEOIDs to show complete time series
+highlight_geoids <- c(
+  "35620",  # New York (all variations)
+  "31080",  # Los Angeles-Long Beach-Anaheim
+  "31100"   # Los Angeles-Long Beach-Santa Ana (older definition)
+)
+
+# Create a simplified city label
+household_size_data <- household_size_data |>
+  mutate(
+    city_label = case_when(
+      GEOID == "35620" ~ "New York Metro Area",
+      GEOID %in% c("31080", "31100") ~ "Los Angeles Metro Area",
+      TRUE ~ NAME
+    )
+  )
+
+ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
+  geom_line(aes(color = city_label), alpha = 0.6, linewidth = 0.8) +
+  gghighlight(
+    GEOID %in% highlight_geoids,
+    use_direct_label = TRUE,
+    label_key = city_label,
+    label_params = list(size = 4, fontface = "bold"),
+    unhighlighted_params = list(
+      colour = alpha("gray80", 0.3),
+      linewidth = 0.4
+    )
+  ) +
+  scale_color_manual(
+    values = c(
+      "New York Metro Area" = "#e74c3c",
+      "Los Angeles Metro Area" = "#3498db"
+    ),
+    guide = "none"
+  ) +
+  scale_y_continuous(
+    breaks = seq(2, 3.5, 0.25),
+    limits = c(2, 3.5)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2009, 2023, 2)
+  ) +
+  labs(
+    title = "Evolution of Average Household Size Over Time (2009-2023)",
+    subtitle = "New York (red) and Los Angeles (blue) highlighted among 380+ metro areas",
+    x = "Year",
+    y = "Average Household Size (persons per household)",
+    caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19\nMetropolitan area definitions updated by Census Bureau over time"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5),
+    plot.caption = element_text(size = 9, hjust = 0, color = "gray40"),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text = element_text(size = 10),
+    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
+  )
+```
+```
