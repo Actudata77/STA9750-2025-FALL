@@ -401,17 +401,21 @@ last_nyc_year <- ds_by_year |>
 
 # Filter to show only NYC area rows
 nyc_only <- ds_by_year |>
-  filter(grepl("New York", NAME, ignore.case = TRUE)) |> 
+  filter(grepl("New York", NAME, ignore.case = TRUE)) |>
   format_titles()
 
-nyc_only |> 
-  datatable(
-    options = list(
-                searching = FALSE, 
-                info = FALSE),
-              rownames = FALSE) |>
-    formatRound(c("Total Employment"))
-nyc_only
+# Store the formatted column names
+formatted_names <- names(nyc_only)
+
+datatable(
+  nyc_only,
+  colnames = formatted_names,  # Explicitly use formatted names
+  options = list(
+    searching = FALSE,
+    info = FALSE,
+    rownames = FALSE)
+) |>
+formatRound(3)  # Use column index instead of name
 ```
 
 The last year in which the NYC CBSA had the most data scientists in the country was `r highlight(last_nyc_year)`.
