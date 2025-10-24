@@ -307,7 +307,7 @@ format_titles <- function(df){
   colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
   return(df)
 }
-
+library(DT)
 
 largest_cbsa <- PERMITS |> 
   filter(year >= 2010 & year <= 2019) |> 
@@ -402,9 +402,12 @@ last_nyc_year <- ds_by_year |>
 # Filter to show only NYC area rows
 nyc_only <- ds_by_year |>
   filter(grepl("New York", NAME, ignore.case = TRUE)) |> 
-  format_titles() |> 
-  datatable(options = list(searching = FALSE, info = FALSE)) |> 
-  formatRound(c("Total Employment"))   
+  format_titles() |>
+  datatable(options = list(
+                searching = FALSE, 
+                info = FALSE),
+              rownames = FALSE) |>
+    formatRound(c("Total Employment"))
 nyc_only
 ```
 
@@ -506,6 +509,7 @@ The coefficient of determination (R²) of approximately 0.58 indicates that abou
 ```{r total_vs_healthcare_employment}
 library(dplyr)
 library(ggplot2)
+library(DT)
 
 # Step 1: Filter WAGES data for healthcare (NAICS 62) before joining
 healthcare_wages <- WAGES |>
@@ -630,6 +634,7 @@ To understand which metropolitan areas face the most severe affordability challe
 ```{r housing_affordability_index}
 # Load required libraries
 library(dplyr)
+library(DT)
 
 # Step 1: Join INCOME and RENT tables
 rent_burden_raw <- INCOME |>
@@ -790,7 +795,7 @@ instantaneous_top <- housing_data |>
   arrange(desc(instantaneous_metric)) |>
   format_titles()
 
-datatable(instantaneous_top, 
+  datatable(instantaneous_top, 
           caption = "Top 10 CBSAs - Instantaneous Housing Growth Metric",
           options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
@@ -860,9 +865,8 @@ composite_bottom <- housing_data |>
   select(NAME, year, instantaneous_metric, rate_based_metric, 
          composite_score, composite_score_rolling) |>
   arrange(composite_score_rolling) |>
-  format_titles()
-
-datatable(composite_bottom,
+  format_titles() |> 
+  datatable(
           caption = "Bottom 10 CBSAs - Composite Housing Growth Score",
           options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
@@ -1152,78 +1156,5 @@ A **Federal YIMBY Incentive Program** would channel federal support toward citie
 By pairing a *YIMBY leader* (Wilmington) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can advance an agenda that lowers rents, expands opportunities and keep America building.
 :::
 
-### Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
 
-For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time and low-lighted the other lines.
 
-```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
-
-library(dplyr)
-library(ggplot2)
-library(gghighlight)
-
-household_size_data <- POPULATION |>
-  inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
-  mutate(avg_household_size = population / households)
-
-# Include ALL NYC and LA GEOIDs to show complete time series
-highlight_geoids <- c(
-  "35620",  # New York (all variations)
-  "31080",  # Los Angeles-Long Beach-Anaheim
-  "31100"   # Los Angeles-Long Beach-Santa Ana (older definition)
-)
-
-# Create a simplified city label
-household_size_data <- household_size_data |>
-  mutate(
-    city_label = case_when(
-      GEOID == "35620" ~ "New York Metro Area",
-      GEOID %in% c("31080", "31100") ~ "Los Angeles Metro Area",
-      TRUE ~ NAME
-    )
-  )
-
-ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
-  geom_line(aes(color = city_label), alpha = 0.6, linewidth = 0.8) +
-  gghighlight(
-    GEOID %in% highlight_geoids,
-    use_direct_label = TRUE,
-    label_key = city_label,
-    label_params = list(size = 4, fontface = "bold"),
-    unhighlighted_params = list(
-      colour = alpha("gray80", 0.3),
-      linewidth = 0.4
-    )
-  ) +
-  scale_color_manual(
-    values = c(
-      "New York Metro Area" = "#e74c3c",
-      "Los Angeles Metro Area" = "#3498db"
-    ),
-    guide = "none"
-  ) +
-  scale_y_continuous(
-    breaks = seq(2, 3.5, 0.25),
-    limits = c(2, 3.5)
-  ) +
-  scale_x_continuous(
-    breaks = seq(2009, 2023, 2)
-  ) +
-  labs(
-    title = "Evolution of Average Household Size Over Time (2009-2023)",
-    subtitle = "New York (red) and Los Angeles (blue) highlighted among 380+ metro areas",
-    x = "Year",
-    y = "Average Household Size (persons per household)",
-    caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19\nMetropolitan area definitions updated by Census Bureau over time"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 11, hjust = 0.5),
-    plot.caption = element_text(size = 9, hjust = 0, color = "gray40"),
-    axis.title = element_text(size = 11, face = "bold"),
-    axis.text = element_text(size = 10),
-    panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
-  )
-```
-```
