@@ -403,7 +403,8 @@ last_nyc_year <- ds_by_year |>
 nyc_only <- ds_by_year |>
   filter(grepl("New York", NAME, ignore.case = TRUE)) |> 
   format_titles() |>
-  datatable(options = list(
+  datatable(colnames = c("Year", "Name", "Total Employment"),
+    options = list(
                 searching = FALSE, 
                 info = FALSE),
               rownames = FALSE) |>
