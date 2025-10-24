@@ -808,7 +808,7 @@ instantaneous_top <- housing_data |>
 
   datatable(instantaneous_top, 
           caption = "Top 10 CBSAs - Instantaneous Housing Growth Metric",
-          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 9: Instantaneous Metric - Bottom 10
@@ -822,7 +822,7 @@ instantaneous_bottom <- housing_data |>
 
 datatable(instantaneous_bottom,
           caption = "Bottom 10 CBSAs - Instantaneous Housing Growth Metric",
-          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 10: Rate-Based Metric - Top 10
@@ -836,7 +836,7 @@ rate_based_top <- housing_data |>
 
 datatable(rate_based_top,
           caption = "Top 10 CBSAs - Rate-Based Housing Growth Metric",
-          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |> 
   formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
@@ -851,7 +851,7 @@ rate_based_bottom <- housing_data |>
 
 datatable(rate_based_bottom,
           caption = "Bottom 10 CBSAs - Rate-Based Housing Growth Metric",
-          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |> 
   formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
@@ -866,7 +866,7 @@ composite_top <- housing_data |>
 
 datatable(composite_top,
           caption = "Top 10 CBSAs - Composite Housing Growth Score",
-          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |> 
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 
 # Step 13: Composite Score - Bottom 10
@@ -880,7 +880,7 @@ composite_bottom <- housing_data |>
 
   datatable(composite_bottom,
           caption = "Bottom 10 CBSAs - Composite Housing Growth Score",
-          options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |> 
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 ```
 The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline—such as New York, Los Angeles, and Chicago—show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. 
@@ -1169,7 +1169,7 @@ By pairing a *YIMBY leader* (Wilmington, NC) with a *NIMBY reformer* (NY-NJ) and
 :::
 
 
-### Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
+## Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
 
 For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time and low-lighted the other lines.
 
