@@ -7,6 +7,7 @@ format:
     toc-title: "Contents"
     number-sections: false
     theme: zephyr
+    css: styles.css
     code-fold: true
     code-summary: "Show code"
 execute:
@@ -302,12 +303,8 @@ We have enough to study how income, rent, housing supply, and wage dynamics inte
 
 ```{r}
 library(dplyr)
-library(stringr)
-format_titles <- function(df){
-  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
-  return(df)
-}
 library(DT)
+library(stringr)
 
 largest_cbsa <- PERMITS |> 
   filter(year >= 2010 & year <= 2019) |> 
@@ -366,6 +363,13 @@ The state with the highest average individual income in 2015 was `r highlight(hi
 
 library(dplyr)
 library(DT)
+library(stringr)
+
+format_titles <- function(df){
+  colnames(df) <- str_replace_all(colnames(df), "_", " ") |> str_to_title()
+  return(df)
+}
+
 
 # Filter WAGES data for data scientists (NAICS 5182) first
 wages_filtered <- WAGES |>
@@ -712,7 +716,7 @@ top_10_lowest <- rent_burden_data |>
 
 ### Housing Growth
 
-```{r housing_growth, warning=FALSE, message=FALSE}
+```{r housing_growth}
 # Load required libraries
 library(dplyr)
 library(RcppRoll)
@@ -872,8 +876,9 @@ composite_bottom <- housing_data |>
   select(NAME, year, instantaneous_metric, rate_based_metric, 
          composite_score, composite_score_rolling) |>
   arrange(composite_score_rolling) |>
-  format_titles() |> 
-  datatable(
+  format_titles() 
+
+  datatable(composite_bottom,
           caption = "Bottom 10 CBSAs - Composite Housing Growth Score",
           options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
@@ -1153,14 +1158,14 @@ Both indicators are easily derived from **American Community Survey (ACS)** enab
 ### 4. Why This Matters
 
 - **For Voters:** Affordable housing allows families to save, spend, and stay in their communities ultimately.  
-- **For Industry:** Stable housing costs sustain labor supply in key sectors like construction and healthcare.  
+- **For Industries:** Stable housing costs sustain labor supply in key sectors like construction and healthcare.  
 - **For Congress:** A bipartisan opportunity — **pro-growth, pro-worker, and fiscally efficient.**
 
 ---
 
 ::: {.callout-tip title="Conclusion"}
 A **Federal YIMBY Incentive Program** would channel federal support toward cities that embrace responsible growth.  
-By pairing a *YIMBY leader* (Wilmington) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can advance an agenda that lowers rents, expands opportunities and keep America building.
+By pairing a *YIMBY leader* (Wilmington, NC) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can advance an agenda that lowers rents, expands opportunities and keep America building.
 :::
 
 

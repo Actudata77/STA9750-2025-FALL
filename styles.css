@@ -1,0 +1,4 @@
+/* Stop Bootswatch from uppercasing DT headers */
+table.dataTable thead th {
+  text-transform: none !important;
+}
