@@ -1170,6 +1170,9 @@ For this extra credit, I use the `gghighlight` package to highlight the NYC and 
 
 ```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
 
+#| echo: true
+#| warning: false
+#| message: false
 library(dplyr)
 library(ggplot2)
 library(gghighlight)
