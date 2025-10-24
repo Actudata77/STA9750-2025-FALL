@@ -402,8 +402,10 @@ last_nyc_year <- ds_by_year |>
 # Filter to show only NYC area rows
 nyc_only <- ds_by_year |>
   filter(grepl("New York", NAME, ignore.case = TRUE)) |> 
-  format_titles() |>
-  datatable(colnames = c("Year", "Name", "Total Employment"),
+  format_titles()
+
+nyc_only |> 
+  datatable(
     options = list(
                 searching = FALSE, 
                 info = FALSE),
