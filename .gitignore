@@ -13,7 +13,6 @@ data/**
 **/*csv*
 **/*xlsx*
 **/*zip
-**/*pdf
 **/*json
 **/*rds
 .DS_Store
