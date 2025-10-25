@@ -1,5 +1,5 @@
 ---
-title: "Mini Project 2: Making Backyards Affordable for All"
+title: "Mini Project #02: Making Backyards Affordable for All"
 author: "Hyacinthe Sarr"
 format:
   html:
@@ -10,10 +10,20 @@ format:
     css: styles.css
     code-fold: true
     code-summary: "Show code"
+    mainfont: Georgia
+  pdf:
+    toc: true
+    number-sections: false
+    mainfont: Garamond
+    fontsize: 11pt
+    geometry:
+      - margin=1in
+    keep-md: true
 execute:
   warning: false
   message: false
 ---
+
 
 ![](images/yimby.jpg){width="100%" height="auto" fig-align="center"}
 
@@ -1098,8 +1108,6 @@ print(viz2)
 
 ```
 
-## Policy Brief
-
 ## 🏛 Policy Brief: Building America Forward — A Federal YIMBY Incentive Program
 
 ::: {.callout-note}
@@ -1133,19 +1141,30 @@ The goal is to make housing attainable for working families while sustaining job
 
 ### 3. Metrics for Targeting Funding
 
-**Housing Growth Rate (“YIMBY Index”)**  
-\[
-\text{Housing Growth} = \frac{\text{New Housing Units Permitted}}{\text{Existing Households}} \times 100
-\]  
+**Housing Growth Rate (“YIMBY Index”)**
+
+&nbsp;  
+
+$$
+\text{Housing Growth} =
+\frac{\text{New Housing Units Permitted}}{\text{Existing Households}} \times 100
+$$  
+
 *Measures how aggressively a metro adds new housing relative to its current stock.*
 
-**Rent Burden**  
-\[
-\text{Rent Burden} = \frac{\text{Median Monthly Rent}}{\text{Median Household Income / 12}}
-\]  
+**Rent Burden**
+
+&nbsp;  
+
+$$
+\text{Rent Burden} =
+\frac{\text{Median Monthly Rent}}{\text{Median Household Income} / 12}
+$$  
+
 *Estimates the share of income spent on rent — lower values mean greater affordability.*
 
-Both indicators are easily derived from **American Community Survey (ACS)** enabling transparent, evidence-based targeting of federal grants.
+Both indicators are easily derived from the **American Community Survey (ACS)**, enabling transparent, evidence-based targeting of federal grants.
+
 
 ---
 
