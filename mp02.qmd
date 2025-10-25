@@ -11,14 +11,6 @@ format:
     code-fold: true
     code-summary: "Show code"
     mainfont: Georgia
-  pdf:
-    toc: true
-    number-sections: false
-    mainfont: Garamond
-    fontsize: 11pt
-    geometry:
-      - margin=1in
-    keep-md: true
 execute:
   warning: false
   message: false

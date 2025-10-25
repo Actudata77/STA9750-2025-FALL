@@ -15,6 +15,7 @@ data/**
 **/*zip
 **/*json
 **/*rds
+**/*.pdf
 .DS_Store
 .Rhistory
 /.quarto/*
