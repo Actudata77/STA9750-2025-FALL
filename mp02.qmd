@@ -908,15 +908,16 @@ Conversely, smaller growing metros show more moderate ratios, suggesting their h
 
 Cities scoring highest on this composite measure are successfully balancing affordability pressures with supply expansion, while those scoring lowest face either restrictive zoning that suppresses building or declining demand that reduces construction incentives. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit activity responds to the specific demographic and economic context of each metropolitan area.
 
-### Visiualization
+### Visualization
 
-The visualizations below examine the relationship between housing affordability metrics we've developed:the Rent Burden Index and Housing Growth Score. These plots are designed to identify metropolitan areas that exemplify "YIMBY" (Yes In My Backyard) success: these are the cities that addressed high housing costs by building more homes, resulting in improved affordability while in the same time maintaining or growing their populations.
+The visualizations below examine the relationship between two housing affordability metrics we developed: the **Rent Burden Index** and the **Housing Growth Score**. These plots are designed to identify metropolitan areas that exemplify “YIMBY” (Yes In My Backyard) success: cities that addressed high housing costs by building more homes, improving affordability while at the same time maintaining or growing their populations.
 
 We define **YIMBY success** using four criteria:
-1. **High early rent burden** (index > 50 in 2009-2013) — cities with affordability problems
-2. **Decreasing rent burden** — affordability improved over the study period  
-3. **Population growth** — cities remained attractive and grew
-4. **Above-average housing growth** (score > 50) — cities built enough housing
+
+1. **High early rent burden** (index > 50 in 2009–2013) — indicates an affordability challenge at baseline. 
+2. **Decreasing rent burden** — affordability improved over the study period.  
+3. **Population growth** — the metro remained attractive and grew.  
+4. **Above-average housing growth** (score > 50) — the metro built enough housing.
 
 Metropolitan areas meeting all four criteria demonstrate that building more housing can successfully address affordability challenges without causing population decline. The following visualizations highlight these success stories and show how different cities compare using these metrics.
 
