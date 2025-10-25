@@ -301,7 +301,7 @@ We have enough to study how income, rent, housing supply, and wage dynamics inte
 
 **1.Which CBSA (by name) permitted the largest number of new housing units in the decade from 2010 to 2019 (inclusive)?**
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 library(dplyr)
 library(DT)
 library(stringr)
@@ -1255,12 +1255,12 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
 ```
 
 
-##🏁 Conclusion 
+## Conclusion 
 
-The analysis conducted in Making Backyards Affordable for All highlights how population growth, housing construction, and affordability interact across metropolitan areas in the United States. Using data from the U.S. Census Bureau (ACS) and the Bureau of Labor Statistics (QCEW), this project identified wide variation in local housing outcomes: some regions continue to expand their housing supply in step with demand, while others show signs of stagnation and cost pressure.
+The analysis conducted for this project shows how population growth, housing construction, and affordability interact across metropolitan areas in the United States. Using data from the U.S. Census Bureau (ACS) and the Bureau of Labor Statistics (QCEW), this project identified wide variation in local housing outcomes: some regions continue to expand their housing supply in step with demand, while others like NYC as an example, show signs of stagnation and cost pressure.
 
-By linking population trends to permit activity, the Housing Growth Metric revealed which CBSAs are keeping pace with demographic change. Areas like Wilmington, NC and other fast-growing metros demonstrate how a balanced pipeline of new permits can help stabilize rents and sustain affordability, while more constrained metros—such as those in the New York–New Jersey corridor—illustrate how limited housing production can amplify rent burden even amid economic strength.
+By linking population trends to permit activity, the Housing Growth Metric revealed which CBSAs are keeping pace with demographic change. Areas like Wilmington, NC and other fast-growing metros demonstrate how a balanced way of new permits issuance can help stabilize rents and sustain affordability, while more constrained metros—such as those in the New York–New Jersey area illustrate how limited housing production can amplify rent burden despite their economic strength.
 
-From a policy standpoint, these findings support the argument for a federal YIMBY initiative that rewards cities not only for expanding housing access but also for creating communities where affordability and opportunity can coexist. Encouraging local governments to align zoning flexibility, infrastructure investment, and long-term planning could yield more balanced regional development.
+From a policy standpoint, these findings support the argument for a federal YIMBY initiative that rewards cities not only for expanding housing access but also for creating communities where affordability and opportunity can coexist. Encouraging local governments to align zoning flexibility, infrastructure investment, and long-term planning could lead to a more balanced regional housing markets.
 
-In sum, the evidence points to a clear takeaway: sustainable housing growth and affordability depend on supply responsiveness. Cities that embrace inclusive, forward-looking planning will be better positioned to attract residents and deliver on the broader promise of making every backyard affordable for all.
+In sum, the evidence points to a clear takeaway: sustainable housing growth and affordability depend on supply responsiveness. Cities that embrace inclusive, forward-looking planning will be better positioned to attract residents, especially the millennial as an example, and deliver on the broader promise of making every backyard affordable for all.
