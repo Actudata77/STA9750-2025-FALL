@@ -808,7 +808,8 @@ instantaneous_top <- housing_data |>
 
   datatable(instantaneous_top, 
           caption = "Top 10 CBSAs - Instantaneous Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE
+                         )) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 9: Instantaneous Metric - Bottom 10
@@ -822,7 +823,7 @@ instantaneous_bottom <- housing_data |>
 
 datatable(instantaneous_bottom,
           caption = "Bottom 10 CBSAs - Instantaneous Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |>
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |>
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 10: Rate-Based Metric - Top 10
@@ -836,7 +837,7 @@ rate_based_top <- housing_data |>
 
 datatable(rate_based_top,
           caption = "Top 10 CBSAs - Rate-Based Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |> 
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
   formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
@@ -851,7 +852,7 @@ rate_based_bottom <- housing_data |>
 
 datatable(rate_based_bottom,
           caption = "Bottom 10 CBSAs - Rate-Based Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |> 
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
   formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
@@ -866,7 +867,7 @@ composite_top <- housing_data |>
 
 datatable(composite_top,
           caption = "Top 10 CBSAs - Composite Housing Growth Score",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |> 
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 
 # Step 13: Composite Score - Bottom 10
@@ -880,7 +881,7 @@ composite_bottom <- housing_data |>
 
   datatable(composite_bottom,
           caption = "Bottom 10 CBSAs - Composite Housing Growth Score",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |> 
+          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 ```
 The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline—such as New York, Los Angeles, and Chicago—show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. 
@@ -1175,29 +1176,24 @@ By pairing a *YIMBY leader* (Wilmington, NC) with a *NIMBY reformer* (NY-NJ) and
 
 ## Extra Credit Opportunity #02: Highlighting Important Units in a Spaghetti Plot
 
-For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time and low-lighted the other lines.
+For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time and low-light the other lines.
 
 ```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
-
-#| echo: true
-#| warning: false
-#| message: false
 library(dplyr)
 library(ggplot2)
 library(gghighlight)
 
+# --- Data prep
 household_size_data <- POPULATION |>
   inner_join(HOUSEHOLDS, by = c("GEOID", "NAME", "year")) |>
   mutate(avg_household_size = population / households)
 
-# Include ALL NYC and LA GEOIDs to show complete time series
 highlight_geoids <- c(
-  "35620",  # New York (all variations)
-  "31080",  # Los Angeles-Long Beach-Anaheim
-  "31100"   # Los Angeles-Long Beach-Santa Ana (older definition)
+  "35620",  # New York Metro
+  "31080",  # Los Angeles–Long Beach–Anaheim
+  "31100"   # Los Angeles–Long Beach–Santa Ana (older definition)
 )
 
-#  city label
 household_size_data <- household_size_data |>
   mutate(
     city_label = case_when(
@@ -1207,6 +1203,7 @@ household_size_data <- household_size_data |>
     )
   )
 
+# --- Plot
 ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)) +
   geom_line(aes(color = city_label), alpha = 0.6, linewidth = 0.8) +
   gghighlight(
@@ -1234,11 +1231,17 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
     breaks = seq(2009, 2023, 2)
   ) +
   labs(
-    title = "Evolution of Average Household Size Over Time (2009-2023)",
+    title = "Evolution of Average Household Size Over Time (2009–2023)",
     subtitle = "New York (red) and Los Angeles (blue) highlighted among 380+ metro areas",
     x = "Year",
     y = "Average Household Size (persons per household)",
-    caption = "Source: American Community Survey (ACS)\nNote: 2020 data unavailable due to COVID-19\nMetropolitan area definitions updated by Census Bureau over time"
+    caption = paste(
+      "Source: American Community Survey (ACS)",
+      "\nNote: 2020 data unavailable due to COVID-19",
+      "\nMetropolitan area definitions updated by Census Bureau over time",
+      "\n\n*Los Angeles appears twice because the Census Bureau and BLS use slightly different metro definitions — one for Los Angeles–Long Beach–Anaheim and one for Los Angeles–Long Beach–Santa Ana.*",
+      sep = "\n"
+    )
   ) +
   theme_minimal() +
   theme(
@@ -1251,243 +1254,13 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
   )
 ```
 
-## Extra Credit Opportunity #03: Increasing Millenial Appeal
 
-Politicians and local leaders always want to attract younger citizens. To make our YIMBY policy brief more appealing to younger demographics, we'll incorporate variables that specifically resonate with millennials and young professionals. We'll add two key metrics:
+##🏁 Conclusion 
 
-1. **Young Adult Population (Ages 25-34)**: This age group represents millennials and young professionals who are particularly affected by housing affordability
-2. **Arts, Entertainment & Recreation Employment**: This sector (NAICS 71) represents the cultural amenities and lifestyle factors that attract young people to cities
+The analysis conducted in Making Backyards Affordable for All highlights how population growth, housing construction, and affordability interact across metropolitan areas in the United States. Using data from the U.S. Census Bureau (ACS) and the Bureau of Labor Statistics (QCEW), this project identified wide variation in local housing outcomes: some regions continue to expand their housing supply in step with demand, while others show signs of stagnation and cost pressure.
 
-```{r extra_credit_03_millennial_data, warning=FALSE, message=FALSE}
-library(dplyr)
-library(tidycensus)
-library(purrr)
+By linking population trends to permit activity, the Housing Growth Metric revealed which CBSAs are keeping pace with demographic change. Areas like Wilmington, NC and other fast-growing metros demonstrate how a balanced pipeline of new permits can help stabilize rents and sustain affordability, while more constrained metros—such as those in the New York–New Jersey corridor—illustrate how limited housing production can amplify rent burden even amid economic strength.
 
-# Get young adult population data (ages 25-34)
-# This requires downloading additional ACS data
-get_young_adults <- function(start_year = 2009, end_year = 2023) {
-  fname <- file.path("data", "mp02", "young_adults_2009_2023.csv")
-  
-  if(!file.exists(fname)) {
-    YEARS <- seq(start_year, end_year)
-    YEARS <- YEARS[YEARS != 2020] # Drop 2020 - No survey (covid)
-    
-    ALL_DATA <- map(YEARS, function(yy){
-      tidycensus::get_acs("cbsa", "B01001_007", year=yy, survey="acs1") |>  # Males 25-29
-        rename(males_25_29 = estimate) |>
-        select(GEOID, NAME, males_25_29) |>
-        left_join(
-          tidycensus::get_acs("cbsa", "B01001_008", year=yy, survey="acs1") |>  # Males 30-34
-            rename(males_30_34 = estimate) |>
-            select(GEOID, males_30_34),
-          by = "GEOID"
-        ) |>
-        left_join(
-          tidycensus::get_acs("cbsa", "B01001_031", year=yy, survey="acs1") |>  # Females 25-29
-            rename(females_25_29 = estimate) |>
-            select(GEOID, females_25_29),
-          by = "GEOID"
-        ) |>
-        left_join(
-          tidycensus::get_acs("cbsa", "B01001_032", year=yy, survey="acs1") |>  # Females 30-34
-            rename(females_30_34 = estimate) |>
-            select(GEOID, females_30_34),
-          by = "GEOID"
-        ) |>
-        mutate(
-          year = yy,
-          young_adults_25_34 = males_25_29 + males_30_34 + females_25_29 + females_30_34
-        ) |>
-        select(GEOID, NAME, year, young_adults_25_34)
-    }) |> bind_rows()
-    
-    write_csv(ALL_DATA, fname)
-  }
-  
-  read_csv(fname, show_col_types = FALSE)
-}
+From a policy standpoint, these findings support the argument for a federal YIMBY initiative that rewards cities not only for expanding housing access but also for creating communities where affordability and opportunity can coexist. Encouraging local governments to align zoning flexibility, infrastructure investment, and long-term planning could yield more balanced regional development.
 
-YOUNG_ADULTS <- get_young_adults()
-
-# Get arts, entertainment, and recreation employment from BLS WAGES data
-ARTS_EMPLOYMENT <- WAGES |>
-  filter(INDUSTRY == 71) |>  # NAICS 71: Arts, Entertainment, and Recreation
-  mutate(std_cbsa = paste0(FIPS, "0")) |>
-  group_by(std_cbsa, YEAR) |>
-  summarise(
-    arts_employment = sum(EMPLOYMENT, na.rm = TRUE),
-    arts_avg_wage = weighted.mean(AVG_WAGE, EMPLOYMENT, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-# Join with POPULATION data to get CBSA names and calculate percentages
-MILLENNIAL_DATA <- POPULATION |>
-  mutate(std_cbsa = paste0("C", GEOID)) |>
-  left_join(
-    ARTS_EMPLOYMENT,
-    by = c("std_cbsa" = "std_cbsa", "year" = "YEAR")
-  ) |>
-  left_join(
-    YOUNG_ADULTS,
-    by = c("GEOID", "NAME", "year")
-  ) |>
-  mutate(
-    young_adult_pct = (young_adults_25_34 / population) * 100,
-    arts_emp_per_1000 = (arts_employment / population) * 1000
-  )
-
-# Calculate summary statistics for most recent year
-recent_year <- max(MILLENNIAL_DATA$year, na.rm = TRUE)
-
-millennial_summary <- MILLENNIAL_DATA |>
-  filter(year == recent_year) |>
-  select(NAME, population, young_adults_25_34, young_adult_pct, 
-         arts_employment, arts_emp_per_1000) |>
-  arrange(desc(young_adult_pct))
-
-cat("Top 10 CBSAs by Young Adult Percentage (Ages 25-34):\n")
-print(
-  millennial_summary |>
-    head(10) |>
-    format_titles() |>
-    datatable(options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
-    formatRound(c("Population", "Young Adults 25 34"), 0) |>
-    formatRound(c("Young Adult Pct", "Arts Emp Per 1000"), 2) |>
-    formatRound(c("Arts Employment"), 0)
-)
-
-cat("\n\nTop 10 CBSAs by Arts, Entertainment & Recreation Employment per 1,000 residents:\n")
-print(
-  millennial_summary |>
-    arrange(desc(arts_emp_per_1000)) |>
-    head(10) |>
-    format_titles() |>
-    datatable(options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
-    formatRound(c("Population", "Young Adults 25 34"), 0) |>
-    formatRound(c("Young Adult Pct", "Arts Emp Per 1000"), 2) |>
-    formatRound(c("Arts Employment"), 0)
-)
-```
-
-Now let's incorporate these millennial-friendly metrics into our YIMBY analysis:
-
-```{r extra_credit_03_millennial_yimby, warning=FALSE, message=FALSE}
-library(dplyr)
-library(ggplot2)
-
-
-# Merge millennial data with YIMBY criteria
-yimby_millennial <- yimby_criteria |>
-  left_join(
-    MILLENNIAL_DATA |>
-      filter(year == recent_year) |>
-      select(GEOID, young_adult_pct, arts_emp_per_1000),
-    by = "GEOID"
-  )
-
-# Create visualization showing relationship between YIMBY success and millennial appeal
-viz_millennial <- ggplot(yimby_millennial, 
-                         aes(x = avg_housing_growth, y = young_adult_pct)) +
-  geom_point(aes(size = arts_emp_per_1000, color = rent_burden_change), alpha = 0.6) +
-  geom_smooth(method = "lm", se = TRUE, color = "navy", linetype = "dashed", linewidth = 0.8) +
-  scale_color_gradient2(
-    low = "#2ecc71", mid = "#f39c12", high = "#e74c3c",
-    name = "Rent Burden\nChange",
-    midpoint = 0
-  ) +
-  scale_size_continuous(
-    name = "Arts Jobs\nper 1,000",
-    range = c(2, 12)
-  ) +
-  labs(
-    title = "YIMBY Cities Attract Young Adults",
-    subtitle = "Higher housing growth correlates with larger young adult populations",
-    x = "Housing Growth Score (higher = more building-friendly)",
-    y = "Young Adults (Ages 25-34) as % of Population",
-    caption = "Point size represents arts, entertainment & recreation employment per 1,000 residents\nColor shows change in rent burden (green = improvement)"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 11, hjust = 0.5),
-    axis.title = element_text(size = 11, face = "bold"),
-    axis.text = element_text(size = 10),
-    legend.position = "right",
-    plot.caption = element_text(size = 8, hjust = 0, color = "gray40")
-  )
-
-print(viz_millennial)
-
-# Calculate correlation
-correlation_result <- cor.test(yimby_millennial$avg_housing_growth, 
-                                yimby_millennial$young_adult_pct, 
-                                use = "complete.obs")
-
-cat("\n\nCorrelation between Housing Growth and Young Adult Population:\n")
-cat("Correlation coefficient:", round(correlation_result$estimate, 3), "\n")
-cat("P-value:", format.pval(correlation_result$p.value, digits = 3), "\n")
-
-# Identify YIMBY cities that are particularly attractive to young adults
-yimby_millennial_winners <- yimby_millennial |>
-  filter(!is.na(young_adult_pct), !is.na(arts_emp_per_1000)) |>
-  mutate(
-    millennial_score = (young_adult_pct / mean(young_adult_pct, na.rm = TRUE)) * 50 +
-                       (arts_emp_per_1000 / mean(arts_emp_per_1000, na.rm = TRUE)) * 50
-  ) |>
-  filter(yimby_score >= 3, millennial_score > 75) |>
-  arrange(desc(millennial_score))
-
-cat("\n\nYIMBY Cities with High Millennial Appeal:\n")
-cat("(Cities with YIMBY score >= 3 AND high young adult/arts employment)\n")
-print(
-  yimby_millennial_winners |>
-    select(NAME, yimby_score, young_adult_pct, arts_emp_per_1000, 
-           millennial_score, rent_burden_change) |>
-    format_titles() |>
-    datatable(options = list(searching = TRUE, paging = TRUE, pageLength = 10, info = FALSE, paging = FALSE)) |>
-    formatRound(c("Yimby Score", "Millennial Score"), 0) |>
-    formatRound(c("Young Adult Pct", "Arts Emp Per 1000", "Rent Burden Change"), 2)
-)
-```
-
-### Millennial Appeal Analysis: Key Findings
-
-The data reveals a strong positive relationship between YIMBY housing policies and millennial attraction. Cities with higher housing growth scores tend to have:
-
-1. **Larger young adult populations (ages 25-34)**: The correlation between housing growth and young adult percentage is positive and statistically significant, suggesting that building-friendly policies help cities attract and retain millennials.
-
-2. **More arts and entertainment jobs**: Cities with robust housing growth also tend to have thriving cultural sectors, with more arts, entertainment, and recreation employment per capita. This creates a virtuous cycle where housing affordability enables young creative professionals to live and work in these cities.
-
-3. **Improving affordability**: YIMBY cities that successfully reduced rent burden while growing their housing stock have become magnets for young professionals who want urban amenities without crushing housing costs.
-
-This matters for policy because:
-
-- **Economic vitality**: Young adults drive innovation, entrepreneurship, and economic growth. Cities that lose young people to housing costs face long-term economic stagnation.
-
-- **Fiscal sustainability**: A younger population provides a stronger tax base and reduces the dependency ratio, making cities more financially sustainable.
-
-- **Cultural vibrancy**: Young adults support the arts, entertainment, and restaurant sectors that make cities attractive places to live and work.
-
-- **Political coalition**: Young voters increasingly prioritize housing affordability. YIMBY policies that attract millennials also build political support for continued reform.
-
-**For the Policy Brief**: These findings demonstrate that YIMBY policies don't just address housing affordability—they make cities more attractive to the young, educated workforce that drives 21st-century economic growth. Federal grants should prioritize cities that commit to both housing growth AND preserving/expanding the cultural amenities that make urban living appealing to young professionals.
-
-
-```{r}
-# Check the data
-summary(yimby_millennial$avg_housing_growth)
-summary(yimby_millennial$young_adult_pct)
-
-# How many complete observations?
-sum(complete.cases(yimby_millennial$avg_housing_growth, 
-                   yimby_millennial$young_adult_pct))
-
-# Look at the data
-head(yimby_millennial |> 
-     select(NAME, avg_housing_growth, young_adult_pct) |> 
-     arrange(desc(avg_housing_growth))) |> 
-      format_titles() |>
-    datatable(options = list(searching = FALSE, info = FALSE, paging = FALSE)) |>
-    formatRound(c("Avg Housing Growth"), 0) |> 
-  formatRound(c("Young Adult Pct"), 0) 
-```
+In sum, the evidence points to a clear takeaway: sustainable housing growth and affordability depend on supply responsiveness. Cities that embrace inclusive, forward-looking planning will be better positioned to attract residents and deliver on the broader promise of making every backyard affordable for all.
