@@ -338,6 +338,7 @@ Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year
 ```{r}
   library(stringr)
   library(DT)
+  library(scales)
   
   highest_indiv_income_2015 <- INCOME |> 
     filter(year == 2015) |> 
@@ -354,7 +355,7 @@ Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year
     select(state, avg_individual_income)
   
 ```
-The state with the highest average individual income in 2015 was `r highlight(highest_indiv_income_2015$state)`, with an average individual income of `r highlight(round(highest_indiv_income_2015$avg_individual_income, 2))`.
+The state with the highest average individual income in 2015 was `r highlight(highest_indiv_income_2015$state)`, with an average individual income of `r highlight(dollar(highest_indiv_income_2015$avg_individual_income, accuracy = 0.01))`.
 
 **4.Data scientists and business analysts are recorded under NAICS code 5182. What is the last year in which the NYC CBSA had the most data scientists in the country? In recent, the San Francisco CBSA has had the most data scientists.**
 
@@ -589,6 +590,9 @@ The faceted visualization reveals a consistent positive relationship between tot
 
 **3. The evolution of average household size over time. Use different lines to represent different CBSAs**
 
+The plot below tracks average household size from 2009 to 2023 across more than 380 metropolitan areas.  
+Most metros have remained stable, though the largest cities tend to show slightly smaller households over time.
+
 ```{r avg_household_size_evolution, warning=FALSE, message=FALSE}
 library(dplyr)
 library(ggplot2)
@@ -721,6 +725,27 @@ top_10_lowest <- rent_burden_data |>
 library(dplyr)
 library(RcppRoll)
 library(DT)
+library(htmltools)
+
+dt_clean <- function(df, caption_text = NULL) {
+  datatable(
+    df,
+    rownames = FALSE,
+    caption = if (!is.null(caption_text)) tags$caption(
+      style = "caption-side: top; text-align: left; font-weight: 600; padding-bottom: 6px;",
+      caption_text
+    ) else NULL,
+    options = list(
+      dom = "t",        
+      paging = FALSE,
+      searching = FALSE,
+      lengthChange = FALSE,
+      info = FALSE,
+      autoWidth = TRUE,
+      scrollX = TRUE
+    )
+  )
+}
 
 # Step 1: Join POPULATION and PERMITS tables
 housing_data <- POPULATION |>
@@ -806,10 +831,8 @@ instantaneous_top <- housing_data |>
   arrange(desc(instantaneous_metric)) |>
   format_titles()
 
-  datatable(instantaneous_top, 
-          caption = "Top 10 CBSAs - Instantaneous Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE
-                         )) |>
+  dt_clean(instantaneous_top, 
+            "Top 10 CBSAs - Instantaneous Housing Growth Metric") |> 
   formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 9: Instantaneous Metric - Bottom 10
@@ -821,10 +844,9 @@ instantaneous_bottom <- housing_data |>
   arrange(instantaneous_metric) |>
   format_titles()
 
-datatable(instantaneous_bottom,
-          caption = "Bottom 10 CBSAs - Instantaneous Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |>
-  formatRound(c("Population", "New Housing Units Permitted", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
+dt_clean(instantaneous_bottom,
+          "Bottom 10 CBSAs - Instantaneous Housing Growth Metric") |>
+  formatRound(c("Population", "Permits Per 1000 Pop", "Instantaneous Metric"), 2)
 
 # Step 10: Rate-Based Metric - Top 10
 rate_based_top <- housing_data |>
@@ -835,10 +857,9 @@ rate_based_top <- housing_data |>
   arrange(desc(rate_based_metric)) |>
   format_titles()
 
-datatable(rate_based_top,
-          caption = "Top 10 CBSAs - Rate-Based Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
-  formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
+dt_clean(rate_based_top,
+         "Top 10 CBSAs - Rate-Based Housing Growth Metric") |>
+  formatRound(c("Population Growth 5yr", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
 # Step 11: Rate-Based Metric - Bottom 10
@@ -850,10 +871,9 @@ rate_based_bottom <- housing_data |>
   arrange(rate_based_metric) |>
   format_titles()
 
-datatable(rate_based_bottom,
-          caption = "Bottom 10 CBSAs - Rate-Based Housing Growth Metric",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
-  formatRound(c("Population Growth 5yr", "New Housing Units Permitted", "Rate Based Metric"), 2) |>
+dt_clean(rate_based_bottom,
+          "Bottom 10 CBSAs - Rate-Based Housing Growth Metric") |> 
+  formatRound(c("Population Growth 5yr", "Rate Based Metric"), 2) |>
   formatRound(c("Permits To Growth Ratio"), 4)
 
 # Step 12: Composite Score - Top 10
@@ -865,9 +885,8 @@ composite_top <- housing_data |>
   arrange(desc(composite_score_rolling)) |>
   format_titles()
 
-datatable(composite_top,
-          caption = "Top 10 CBSAs - Composite Housing Growth Score",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
+dt_clean(composite_top,
+         "Top 10 CBSAs - Composite Housing Growth Score") |> 
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 
 # Step 13: Composite Score - Bottom 10
@@ -879,18 +898,19 @@ composite_bottom <- housing_data |>
   arrange(composite_score_rolling) |>
   format_titles() 
 
-  datatable(composite_bottom,
-          caption = "Bottom 10 CBSAs - Composite Housing Growth Score",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = FALSE)) |> 
+  dt_clean(composite_bottom,
+          "Bottom 10 CBSAs - Composite Housing Growth Score") |> 
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 ```
-The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline—such as New York, Los Angeles, and Chicago—show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. 
-Conversely, smaller growing metros show more moderate ratios, suggesting their housing supply is more closely calibrated to population increases. When combined with the instantaneous metric (which measures permits relative to current population size), this composite score identifies which cities are genuinely meeting housing demand—those building enough homes for both existing residents and new population growth. 
+The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline such as New York, Los Angeles, and Chicago show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. 
+
+Conversely, smaller growing metros show more moderate ratios, suggesting their housing supply is more closely calibrated to their population increases. When combined with the instantaneous metric (which measures permits relative to current population size), this composite score identifies which cities are meeting housing demand, which are those building enough homes for both existing residents and new population growth. 
+
 Cities scoring highest on this composite measure are successfully balancing affordability pressures with supply expansion, while those scoring lowest face either restrictive zoning that suppresses building or declining demand that reduces construction incentives. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit activity responds to the specific demographic and economic context of each metropolitan area.
 
 ### Visiualization
 
-The visualizations below examine the relationship between housing affordability metrics we've developed:the Rent Burden Index and Housing Growth Score. These plots are designed to identify metropolitan areas that exemplify "YIMBY" (Yes In My Backyard) success: cities that addressed high housing costs by building more homes, resulting in improved affordability while in the same time maintaining or growing their populations.
+The visualizations below examine the relationship between housing affordability metrics we've developed:the Rent Burden Index and Housing Growth Score. These plots are designed to identify metropolitan areas that exemplify "YIMBY" (Yes In My Backyard) success: these are the cities that addressed high housing costs by building more homes, resulting in improved affordability while in the same time maintaining or growing their populations.
 
 We define **YIMBY success** using four criteria:
 1. **High early rent burden** (index > 50 in 2009-2013) — cities with affordability problems
@@ -911,7 +931,7 @@ library(readr)
 library(DT)
 library(htmltools)
 
-# helper: minimal DT (no search, no paging, no info)
+# title-on-top, no controls
 dt_clean <- function(df, caption_text = NULL) {
   datatable(
     df,
@@ -921,15 +941,31 @@ dt_clean <- function(df, caption_text = NULL) {
       caption_text
     ) else NULL,
     options = list(
-      dom = "t",          # table body only (hides search, length, pagination, info)
-      paging = FALSE,
-      searching = FALSE,
-      info = FALSE,
-      autoWidth = TRUE,
-      scrollX = TRUE
+      dom = "t",
+      paging = FALSE, searching = FALSE, lengthChange = FALSE, info = FALSE,
+      autoWidth = TRUE, scrollX = TRUE
     )
   )
 }
+
+# title-on-top, pager only (10 per page), no search/length/info
+dt_paginated <- function(df, caption_text = NULL, page_len = 10) {
+  datatable(
+    df,
+    rownames = FALSE,
+    caption = if (!is.null(caption_text)) tags$caption(
+      style = "caption-side: top; text-align: left; font-weight: 600; padding-bottom: 6px;",
+      caption_text
+    ) else NULL,
+    options = list(
+      dom = "tp",              # t = table, p = pagination; (no f,l,i controls)
+      paging = TRUE, pageLength = page_len,
+      searching = FALSE, lengthChange = FALSE, info = FALSE,
+      autoWidth = TRUE, scrollX = TRUE
+    )
+  )
+}
+
 
 # ---- Step 1: Merge inputs ----
 rent_burden_by_year <- rent_burden_data |>
@@ -973,47 +1009,36 @@ yimby_criteria <- yimby_data |>
   ) |>
   arrange(desc(yimby_score), desc(avg_housing_growth))
 
-# ---- Table 1: Perfect YIMBYs ----
+
+# ---- Table: Perfect YIMBYs 
 perfect_yimby <- yimby_criteria |>
   filter(is_yimby) |>
   transmute(
     NAME,
     `YIMBY Score` = yimby_score,
-    `Early Rent Burden` = round(early_rent_burden, 2),
-    `Rent Burden Change` = round(rent_burden_change, 2),
+    `Early Rent Burden`     = round(early_rent_burden, 2),
+    `Rent Burden Change`    = round(rent_burden_change, 2),
     `Population Growth Pct` = round(population_growth_pct, 2),
-    `Avg Housing Growth` = round(avg_housing_growth, 2)
+    `Avg Housing Growth`    = round(avg_housing_growth, 2)
   )
 
 if (nrow(perfect_yimby) > 0) {
-  dt_clean(perfect_yimby, "CBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success)")
+  dt_paginated(perfect_yimby, "CBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success)", page_len = 10)
 } else {
   htmltools::div(style="font-style:italic; color:#666; margin: 0.4rem 0;",
                  "No CBSAs meet all four criteria.")
 }
 
-# ---- Table 2: Top 15 by YIMBY score ----
-top15 <- yimby_criteria |>
-  slice_head(n = 15) |>
-  transmute(
-    NAME,
-    `YIMBY Score` = yimby_score,
-    `Early Rent Burden` = round(early_rent_burden, 2),
-    `Rent Burden Change` = round(rent_burden_change, 2),
-    `Population Growth Pct` = round(population_growth_pct, 2),
-    `Avg Housing Growth` = round(avg_housing_growth, 2)
-  )
+```
 
-dt_clean(top15, "Top 15 CBSAs by YIMBY Score")
-
-# ---- Viz 1: highlight top 10 among perfect YIMBYs ----
+```{r yimby_success_viz1, warning=FALSE, message=FALSE}
 top_yimby <- yimby_criteria |> filter(is_yimby) |> arrange(desc(avg_housing_growth)) |> slice_head(n=10)
 
 viz1_top <- ggplot(yimby_criteria, aes(avg_housing_growth, early_rent_burden)) +
   geom_point(aes(size = population_growth_pct, color = factor(yimby_score)), alpha = 0.6) +
   geom_point(data = top_yimby, aes(size = population_growth_pct), color = "#2ecc71",
              alpha = 0.9, stroke = 1.5, shape = 21) +
-  geom_text_repel(data = top_yimby,
+  ggrepel::geom_text_repel(data = top_yimby,
                   aes(label = stringr::str_extract(NAME, "^[^,]+")),
                   size = 3, fontface = "bold", box.padding = 0.8,
                   point.padding = 0.5, segment.color = "gray40",
@@ -1040,6 +1065,12 @@ viz1_top <- ggplot(yimby_criteria, aes(avg_housing_growth, early_rent_burden)) +
   )
 print(viz1_top)
 
+
+```
+
+The first chart above spotlights the best-performing metros among the “perfect YIMBY” group—those that combined strong housing growth with improved affordability. In the plot below, we broaden the view to see how **all** metros perform across rent-burden change and population growth, with marker size indicating housing growth.
+
+```{r yimby_success_viz_2, warning=FALSE, message=FALSE}
 # ---- Viz 2: 4-criteria map (change vs growth) ----
 viz2 <- ggplot(yimby_criteria, aes(rent_burden_change, population_growth_pct)) +
   geom_point(aes(size = avg_housing_growth, color = factor(yimby_score)), alpha = 0.7) +
@@ -1069,8 +1100,6 @@ viz2 <- ggplot(yimby_criteria, aes(rent_burden_change, population_growth_pct)) +
 print(viz2)
 
 ```
-
-
 
 ## Policy Brief
 
