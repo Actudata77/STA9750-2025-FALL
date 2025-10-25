@@ -902,16 +902,36 @@ Metropolitan areas meeting all four criteria demonstrate that building more hous
 
 
 ```{r yimby_success_analysis, warning=FALSE, message=FALSE}
-# Load required libraries
+
 library(dplyr)
 library(ggplot2)
 library(gghighlight)
 library(ggrepel)
 library(readr)
 library(DT)
+library(htmltools)
 
-# Step 1: Merge rent burden and housing growth data
-# First, prepare rent burden data by year
+# helper: minimal DT (no search, no paging, no info)
+dt_clean <- function(df, caption_text = NULL) {
+  datatable(
+    df,
+    rownames = FALSE,
+    caption = if (!is.null(caption_text)) tags$caption(
+      style = "caption-side: top; text-align: left; font-weight: 600; padding-bottom: 6px;",
+      caption_text
+    ) else NULL,
+    options = list(
+      dom = "t",          # table body only (hides search, length, pagination, info)
+      paging = FALSE,
+      searching = FALSE,
+      info = FALSE,
+      autoWidth = TRUE,
+      scrollX = TRUE
+    )
+  )
+}
+
+# ---- Step 1: Merge inputs ----
 rent_burden_by_year <- rent_burden_data |>
   group_by(GEOID, NAME, year) |>
   summarise(
@@ -919,144 +939,97 @@ rent_burden_by_year <- rent_burden_data |>
     .groups = "drop"
   )
 
-# Prepare housing growth data
 housing_growth_by_year <- housing_data |>
-  select(GEOID, NAME, year, population, composite_score, 
+  select(GEOID, NAME, year, population, composite_score,
          composite_score_rolling, instantaneous_metric, rate_based_metric) |>
   distinct()
 
-# Merge the two datasets
 yimby_data <- rent_burden_by_year |>
-  inner_join(
-    housing_growth_by_year,
-    by = c("GEOID" = "GEOID", "NAME" = "NAME", "year" = "year")
-  ) |>
+  inner_join(housing_growth_by_year, by = c("GEOID","NAME","year")) |>
   arrange(GEOID, year)
 
-# Step 2: Calculate YIMBY criteria for each CBSA
+# ---- Step 2: Criteria + score ----
 yimby_criteria <- yimby_data |>
   group_by(GEOID, NAME) |>
   summarise(
-    # Criterion 1: High rent burden in early period (2009-2013 average)
     early_rent_burden = mean(avg_rent_burden_index[year < 2014], na.rm = TRUE),
-    
-    # Criterion 2: Decrease in rent burden over study period
-    rent_burden_change = mean(avg_rent_burden_index[year >= 2020], na.rm = TRUE) - 
-      mean(avg_rent_burden_index[year < 2014], na.rm = TRUE),
-    
-    # Criterion 3: Population growth over study period
+    rent_burden_change = mean(avg_rent_burden_index[year >= 2020], na.rm = TRUE) -
+                         mean(avg_rent_burden_index[year < 2014], na.rm = TRUE),
     pop_start = population[year == min(year)],
-    pop_end = population[year == max(year)],
-    population_growth = pop_end - pop_start,
-    population_growth_pct = ((pop_end - pop_start) / pop_start) * 100,
-    
-    # Criterion 4: Above-average housing growth
-    avg_housing_growth = mean(composite_score_rolling, na.rm = TRUE),
-    
+    pop_end   = population[year == max(year)],
+    population_growth      = pop_end - pop_start,
+    population_growth_pct  = ((pop_end - pop_start) / pop_start) * 100,
+    avg_housing_growth     = mean(composite_score_rolling, na.rm = TRUE),
     .groups = "drop"
   ) |>
   mutate(
-    # Score each criterion (1 = meets criterion, 0 = does not)
-    criterion_1_high_burden = ifelse(early_rent_burden > 50, 1, 0),
-    criterion_2_decreased_burden = ifelse(rent_burden_change < 0, 1, 0),
-    criterion_3_pop_growth = ifelse(population_growth > 0, 1, 0),
-    criterion_4_housing_growth = ifelse(avg_housing_growth > 50, 1, 0),
-    
-    # YIMBY score (0-4, higher is better)
-    yimby_score = criterion_1_high_burden + criterion_2_decreased_burden + 
-      criterion_3_pop_growth + criterion_4_housing_growth,
-    
-    # Identify perfect YIMBY CBSAs (score = 4)
-    is_yimby = ifelse(yimby_score == 4, TRUE, FALSE)
+    criterion_1_high_burden   = as.integer(early_rent_burden > 50),
+    criterion_2_decreased_burden = as.integer(rent_burden_change < 0),
+    criterion_3_pop_growth    = as.integer(population_growth > 0),
+    criterion_4_housing_growth= as.integer(avg_housing_growth > 50),
+    yimby_score = criterion_1_high_burden + criterion_2_decreased_burden +
+                  criterion_3_pop_growth + criterion_4_housing_growth,
+    is_yimby = yimby_score == 4
   ) |>
-  arrange(desc(yimby_score))
+  arrange(desc(yimby_score), desc(avg_housing_growth))
 
-# Display YIMBY results
-cat("YIMBY Success Analysis\n")
-cat(paste0(rep("=", 83), collapse = ""), "\n")
-cat("\nCBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success):\n")
-cat(paste0(rep("-", 83), collapse = ""), "\n")
+# ---- Table 1: Perfect YIMBYs ----
+perfect_yimby <- yimby_criteria |>
+  filter(is_yimby) |>
+  transmute(
+    NAME,
+    `YIMBY Score` = yimby_score,
+    `Early Rent Burden` = round(early_rent_burden, 2),
+    `Rent Burden Change` = round(rent_burden_change, 2),
+    `Population Growth Pct` = round(population_growth_pct, 2),
+    `Avg Housing Growth` = round(avg_housing_growth, 2)
+  )
 
-# KEEP - DataTable 1
-perfect_yimby <- yimby_criteria |> filter(yimby_score == 4)
 if (nrow(perfect_yimby) > 0) {
-  perfect_yimby |> 
-    select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
-           population_growth_pct, avg_housing_growth) |>
-    format_titles() |> 
-  datatable(perfect_yimby,
-          caption = "CBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success):",
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = TRUE, info = TRUE)) |> 
-    formatRound(c("Early Rent Burden", "Rent Burden Change", 
-                  "Population Growth Pct", "Avg Housing Growth"), 2)
+  dt_clean(perfect_yimby, "CBSAs Meeting All 4 YIMBY Criteria (Perfect YIMBY Success)")
 } else {
-  cat("No CBSAs meet all 4 criteria.\n")
+  htmltools::div(style="font-style:italic; color:#666; margin: 0.4rem 0;",
+                 "No CBSAs meet all four criteria.")
 }
 
-cat("\n\nTop 15 CBSAs by YIMBY Score:\n")
-cat(paste0(rep("-", 83), collapse = ""), "\n")
+# ---- Table 2: Top 15 by YIMBY score ----
+top15 <- yimby_criteria |>
+  slice_head(n = 15) |>
+  transmute(
+    NAME,
+    `YIMBY Score` = yimby_score,
+    `Early Rent Burden` = round(early_rent_burden, 2),
+    `Rent Burden Change` = round(rent_burden_change, 2),
+    `Population Growth Pct` = round(population_growth_pct, 2),
+    `Avg Housing Growth` = round(avg_housing_growth, 2)
+  )
 
-# KEEP - DataTable 2
-yimby_criteria |> 
-  head(15) |>
-  select(NAME, yimby_score, early_rent_burden, rent_burden_change, 
-         population_growth_pct, avg_housing_growth) |> 
-  format_titles() |> 
-  datatable(yimby_criteria,
-          options = list(paging = TRUE, pageLength = 10, lengthChange = TRUE, searching = FALSE, info = TRUE)) |> 
-  formatRound(c("Early Rent Burden", "Rent Burden Change", 
-                "Population Growth Pct", "Avg Housing Growth"),2)
+dt_clean(top15, "Top 15 CBSAs by YIMBY Score")
 
+# ---- Viz 1: highlight top 10 among perfect YIMBYs ----
+top_yimby <- yimby_criteria |> filter(is_yimby) |> arrange(desc(avg_housing_growth)) |> slice_head(n=10)
 
-
-
-# Visualization 1: Scatter plot of Rent Burden vs Housing Growth
-# Label only the "best" YIMBY cities (highest housing growth among perfect scores)
-top_yimby <- yimby_criteria |> 
-  filter(is_yimby) |> 
-  arrange(desc(avg_housing_growth)) |> 
-  head(10)  # Top 10 by housing growth
-
-viz1_top <- ggplot(yimby_criteria, 
-                   aes(x = avg_housing_growth, y = early_rent_burden)) +
-  # All points colored by score
-  geom_point(aes(size = population_growth_pct, 
-                 color = factor(yimby_score)),
-             alpha = 0.6) +
-  # Highlight and label top 10 only
-  geom_point(data = top_yimby,
-             aes(size = population_growth_pct),
-             color = "#2ecc71",
-             alpha = 0.9,
-             stroke = 1.5,
-             shape = 21) +
-  geom_text_repel(
-    data = top_yimby,
-    aes(label = str_extract(NAME, "^[^,]+")),  # City name only
-    size = 3,
-    fontface = "bold",
-    box.padding = 0.8,
-    point.padding = 0.5,
-    segment.color = "gray40",
-    min.segment.length = 0,
-    max.overlaps = 15,
-    force = 2
-  ) +
+viz1_top <- ggplot(yimby_criteria, aes(avg_housing_growth, early_rent_burden)) +
+  geom_point(aes(size = population_growth_pct, color = factor(yimby_score)), alpha = 0.6) +
+  geom_point(data = top_yimby, aes(size = population_growth_pct), color = "#2ecc71",
+             alpha = 0.9, stroke = 1.5, shape = 21) +
+  geom_text_repel(data = top_yimby,
+                  aes(label = stringr::str_extract(NAME, "^[^,]+")),
+                  size = 3, fontface = "bold", box.padding = 0.8,
+                  point.padding = 0.5, segment.color = "gray40",
+                  min.segment.length = 0, max.overlaps = 15, force = 2) +
   geom_hline(yintercept = 50, linetype = "dashed", color = "black", alpha = 0.4) +
   geom_vline(xintercept = 50, linetype = "dashed", color = "black", alpha = 0.4) +
-  scale_color_manual(
-    values = c("0" = "#d3d3d3", "1" = "#bdbdbd", "2" = "#f39c12", 
-               "3" = "#3498db", "4" = "#2ecc71"),
-    name = "YIMBY Score"
-  ) +
+  scale_color_manual(values = c("0"="#d3d3d3","1"="#bdbdbd","2"="#f39c12","3"="#3498db","4"="#2ecc71"),
+                     name = "YIMBY Score") +
   scale_size_continuous(range = c(1, 10), name = "Population\nGrowth %") +
   coord_cartesian(xlim = c(20, 250)) +
   labs(
     title = "Top 10 YIMBY Success Stories",
-    subtitle = "Highest housing growth among 64 cities meeting all 4 YIMBY criteria",
+    subtitle = "Highest housing growth among CBSAs meeting all 4 criteria",
     x = "Average Housing Growth Score",
-    y = "Early Period Rent Burden Index (2009-2013)",
-    caption = "Green = perfect YIMBY score (4/4) | Labeled: top 10 by housing growth"
+    y = "Early Period Rent Burden Index (2009–2013)",
+    caption = "Green = perfect YIMBY (4/4) • Labels: top 10 by housing growth"
   ) +
   theme_minimal() +
   theme(
@@ -1065,35 +1038,26 @@ viz1_top <- ggplot(yimby_criteria,
     axis.title = element_text(size = 11, face = "bold"),
     legend.position = "right"
   )
-
 print(viz1_top)
 
-# Visualization 2: Multi-dimensional view with all 4 criteria
-viz2 <- ggplot(yimby_criteria, 
-               aes(x = rent_burden_change, y = population_growth_pct)) +
-  geom_point(aes(size = avg_housing_growth, 
-                 color = factor(yimby_score)),
-             alpha = 0.7) +
+# ---- Viz 2: 4-criteria map (change vs growth) ----
+viz2 <- ggplot(yimby_criteria, aes(rent_burden_change, population_growth_pct)) +
+  geom_point(aes(size = avg_housing_growth, color = factor(yimby_score)), alpha = 0.7) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black", alpha = 0.5) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "black", alpha = 0.5) +
-  # Highlight ideal quadrant
-  annotate("rect", xmin = -Inf, xmax = 0, ymin = 0, ymax = Inf,
-           alpha = 0.08, fill = "green") +
-  annotate("text", x = -8, y = 55, 
-           label = "IDEAL: Decreasing rent\nburden + Growing population",
+  annotate("rect", xmin = -Inf, xmax = 0, ymin = 0, ymax = Inf, alpha = 0.08, fill = "green") +
+  annotate("text", x = -8, y = 55,
+           label = "IDEAL: Decreasing rent burden + Growing population",
            fontface = "bold", color = "darkgreen", size = 3.5) +
-  scale_color_manual(
-    values = c("0" = "#d3d3d3", "1" = "#bdbdbd", "2" = "#f39c12", 
-               "3" = "#3498db", "4" = "#2ecc71"),
-    name = "YIMBY Score"
-  ) +
+  scale_color_manual(values = c("0"="#d3d3d3","1"="#bdbdbd","2"="#f39c12","3"="#3498db","4"="#2ecc71"),
+                     name = "YIMBY Score") +
   scale_size_continuous(range = c(2, 12), name = "Housing\nGrowth Score") +
   labs(
     title = "YIMBY Success: Four Criteria Combined",
     subtitle = "Green shading shows ideal quadrant (rent burden ↓ + population ↑)",
     x = "Rent Burden Change (negative = improvement)",
     y = "Population Growth %",
-    caption = "Point color: YIMBY score | Size: housing growth | Green zone: best outcomes"
+    caption = "Color = YIMBY score • Size = housing growth • Green zone = best outcomes"
   ) +
   theme_minimal() +
   theme(
@@ -1102,8 +1066,8 @@ viz2 <- ggplot(yimby_criteria,
     axis.title = element_text(size = 11, face = "bold"),
     legend.position = "right"
   )
-
 print(viz2)
+
 ```
 
 
@@ -1119,7 +1083,7 @@ This brief advocates for a **Federal YIMBY Incentive Program** that rewards loca
 The goal is to make housing attainable for working families while sustaining job growth in construction, health care, and other essential industries.
 :::
 
-### 1. Identifying Congressional Sponsors
+### 1. Congressional Sponsors
 
 - **Primary Sponsor — Wilmington, NC Metro Area**  
   Wilmington exemplifies *YIMBY* success. Since 2009 it has permitted new housing at one of the fastest rates relative to existing households.  
@@ -1129,7 +1093,6 @@ The goal is to make housing attainable for working families while sustaining job
   The New York metro area faces some of the nation’s highest rent burdens and tightest housing supply.  
   A federal incentive program would help such regions modernize zoning practices and accelerate building approvals by tying funding to measurable improvements in housing growth and affordability.  
 
-Together, these two sponsors symbolize the coalition needed to pass the bill: one city that **proves YIMBY policies work**, and another that **urgently needs reform**.
 
 ---
 
@@ -1179,6 +1142,8 @@ By pairing a *YIMBY leader* (Wilmington, NC) with a *NIMBY reformer* (NY-NJ) and
 For this extra credit, I use the `gghighlight` package to highlight the NYC and Los Angeles CBSAs in the visualization of household size over time and low-light the other lines.
 
 ```{r extra_credit_02_household_size_highlight, warning=FALSE, message=FALSE}
+
+
 library(dplyr)
 library(ggplot2)
 library(gghighlight)
@@ -1239,7 +1204,6 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
       "Source: American Community Survey (ACS)",
       "\nNote: 2020 data unavailable due to COVID-19",
       "\nMetropolitan area definitions updated by Census Bureau over time",
-      "\n\n*Los Angeles appears twice because the Census Bureau and BLS use slightly different metro definitions — one for Los Angeles–Long Beach–Anaheim and one for Los Angeles–Long Beach–Santa Ana.*",
       sep = "\n"
     )
   ) +
@@ -1253,13 +1217,17 @@ ggplot(household_size_data, aes(x = year, y = avg_household_size, group = GEOID)
     panel.grid.minor = element_line(linetype = "dotted", linewidth = 0.3)
   )
 ```
+::: callout-note
+**Why two Los Angeles lines?**  
+The Census Bureau and BLS use slightly different metro definitions. “Los Angeles–Long Beach–Anaheim” is the full CSA; “Los Angeles–Long Beach–Santa Ana” is a metropolitan division. Both are shown to preserve data integrity.
+:::
 
 
 ## Conclusion 
 
 The analysis conducted for this project shows how population growth, housing construction, and affordability interact across metropolitan areas in the United States. Using data from the U.S. Census Bureau (ACS) and the Bureau of Labor Statistics (QCEW), this project identified wide variation in local housing outcomes: some regions continue to expand their housing supply in step with demand, while others like NYC as an example, show signs of stagnation and cost pressure.
 
-By linking population trends to permit activity, the Housing Growth Metric revealed which CBSAs are keeping pace with demographic change. Areas like Wilmington, NC and other fast-growing metros demonstrate how a balanced way of new permits issuance can help stabilize rents and sustain affordability, while more constrained metros—such as those in the New York–New Jersey area illustrate how limited housing production can amplify rent burden despite their economic strength.
+By linking population trends to permit activity, the Housing Growth Metric revealed which CBSAs are keeping pace with demographic change. Areas like Wilmington, NC and other fast-growing metros demonstrate how a balanced way of new permits issuance can help stabilize rents and sustain affordability, while more constrained metros such as those in the New York–New Jersey area illustrate how limited housing production can amplify rent burden despite their economic strength.
 
 From a policy standpoint, these findings support the argument for a federal YIMBY initiative that rewards cities not only for expanding housing access but also for creating communities where affordability and opportunity can coexist. Encouraging local governments to align zoning flexibility, infrastructure investment, and long-term planning could lead to a more balanced regional housing markets.
 
