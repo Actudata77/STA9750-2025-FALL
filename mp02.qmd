@@ -968,8 +968,8 @@ The visualizations below examine the relationship between two housing affordabil
 
 We define **YIMBY success** using four criteria:
 
-1. **High early rent burden** (index > 50 in 2009–2013) — indicates an affordability challenge at baseline. 
-2. **Decreasing rent burden** — affordability improved over the study period.  
+1. **High early rent burden** (index > 50 in 2009–2013) — indicates an affordability challenge. 
+2. **Decreasing rent burden** — affordability has improved over the study period.  
 3. **Population growth** — the metro remained attractive and grew.  
 4. **Above-average housing growth** (score > 50) — the metro built enough housing.
 
