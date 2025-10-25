@@ -331,7 +331,7 @@ The CBSA that permitted the largest number of new housing units in the decade fr
     slice(1) |> 
     select(year, new_housing_units_permitted)
 ```
-Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year of `r highlight(housing_permits$year)`, for a total of `r highlight(housing_permits$new_housing_units_permitted)`.
+Abuquerque, NM (CBSA Number 10740) issued the most new housing units in the year of `r highlight(housing_permits$year)`, for a total of `r highlight(scales::comma(housing_permits$new_housing_units_permitted))`.
 
 **3.Which state (not CBSA) had the highest average individual income in 2015? To answer this question, you will need to first compute the total income per CBSA by multiplying the average household income by the number of households, and then sum total income and total population across all CBSAs in a state. With these numbers, you can answer this question.**
 
@@ -650,6 +650,8 @@ To understand which metropolitan areas face the most severe affordability challe
 # Load required libraries
 library(dplyr)
 library(DT)
+library(htmltools)
+library(scales)
 
 # Step 1: Join INCOME and RENT tables
 rent_burden_raw <- INCOME |>
@@ -674,7 +676,6 @@ national_baseline <- rent_burden_raw |>
   summarise(mean_rent_to_income = mean(raw_rent_to_income, na.rm = TRUE)) |>
   pull(mean_rent_to_income)
 
-cat("National baseline rent-to-income ratio:", round(national_baseline, 4), "\n\n")
 
 # Step 4: Create standardized rent burden index
 rent_burden_data <- rent_burden_raw |>
@@ -696,16 +697,6 @@ rent_burden_data <- rent_burden_raw |>
          annual_rent, raw_rent_to_income, rent_burden_index, burden_level) |>
   arrange(year, rent_burden_index)
 
-# Calculate summary statistics for narrative text
-rent_burden_stats <- list(
-  min = round(min(rent_burden_data$rent_burden_index, na.rm = TRUE), 2),
-  q1 = round(quantile(rent_burden_data$rent_burden_index, 0.25, na.rm = TRUE), 2),
-  median = round(median(rent_burden_data$rent_burden_index, na.rm = TRUE), 2),
-  mean = round(mean(rent_burden_data$rent_burden_index, na.rm = TRUE), 2),
-  q3 = round(quantile(rent_burden_data$rent_burden_index, 0.75, na.rm = TRUE), 2),
-  max = round(max(rent_burden_data$rent_burden_index, na.rm = TRUE), 2)
-)
-
 # Prepare tables for display
 top_10_highest <- rent_burden_data |>
   filter(year == max(year)) |>
@@ -717,6 +708,11 @@ top_10_lowest <- rent_burden_data |>
   slice_min(rent_burden_index, n = 10) |>
   select(NAME, year, household_income, monthly_rent, rent_burden_index, burden_level)
 ```
+
+::: callout-note
+**National baseline rent-to-income ratio:** `r scales::percent(national_baseline, accuracy = 0.1)`  
+This sets the Rent Burden Index baseline at 50, representing the national average
+:::
 
 ### Housing Growth
 
