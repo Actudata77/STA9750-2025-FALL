@@ -956,22 +956,22 @@ dt_clean(
 ) |>
   formatRound(c("Instantaneous Metric", "Rate Based Metric", "Composite Score", "Composite Score Rolling"), 2)
 ```
-The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline such as New York, Los Angeles, and Chicago show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations. This pattern reflects two competing dynamics: either these large metros are actively building to attract new residents and reverse decline, or they are replacing aging housing stock in mature markets. 
+The housing growth metrics reveal a complex relationship between housing supply and demographic change across American metropolitan areas. The rate-based metric, which compares housing permits to five-year population growth, captures an important distinction: cities experiencing population decline such as New York, Los Angeles, and Chicago show exceptionally high permit-to-growth ratios, indicating substantial housing construction despite shrinking populations.  
 
 Conversely, smaller growing metros show more moderate ratios, suggesting their housing supply is more closely calibrated to their population increases. When combined with the instantaneous metric (which measures permits relative to current population size), this composite score identifies which cities are meeting housing demand, which are those building enough homes for both existing residents and new population growth. 
 
-Cities scoring highest on this composite measure are successfully balancing affordability pressures with supply expansion, while those scoring lowest face either restrictive zoning that suppresses building or declining demand that reduces construction incentives. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit activity responds to the specific demographic and economic context of each metropolitan area.
+Cities scoring highest on this composite measure are successfully balancing affordability even when their population are increasing, while those scoring lowest face either restrictive zoning practices that suppresses building. This framework reveals that housing adequacy cannot be measured by raw permit counts alone; it requires understanding how permit issuance interact with housing growth and economics for each region.
 
 ### Visualization
 
-The visualizations below examine the relationship between two housing affordability metrics we developed: the **Rent Burden Index** and the **Housing Growth Score**. These plots are designed to identify metropolitan areas that exemplify “YIMBY” (Yes In My Backyard) success: cities that addressed high housing costs by building more homes, improving affordability while at the same time maintaining or growing their populations.
+The visualizations below examine the relationship between two housing affordability metrics: the **Rent Burden Index** and the **Housing Growth Score**. These plots identify metropolitan areas that exemplify “YIMBY” success: cities that addressed high housing costs by building more homes, improving affordability while at the same time maintaining or growing their populations.
 
-We define **YIMBY success** using four criteria:
+**YIMBY success** is defined using four criteria:
 
 1. **High early rent burden** (index > 50 in 2009–2013) — indicates an affordability challenge. 
 2. **Decreasing rent burden** — affordability has improved over the study period.  
-3. **Population growth** — the metro remained attractive and grew.  
-4. **Above-average housing growth** (score > 50) — the metro built enough housing.
+3. **Population growth** — the metro area experienced population growth.
+4. **Above-average housing growth** (score > 50) — the metro area built enough housing.
 
 Metropolitan areas meeting all four criteria demonstrate that building more housing can successfully address affordability challenges without causing population decline. The following visualizations highlight these success stories and show how different cities compare using these metrics.
 
@@ -1140,7 +1140,7 @@ viz1_top <- ggplot(yimby_criteria, aes(avg_housing_growth, early_rent_burden)) +
 print(viz1_top)
 ```
 
-The first chart above spotlights the best-performing metros among the “perfect YIMBY” group—those that combined strong housing growth with improved affordability. In the plot below, we broaden the view to see how **all** metros perform across rent-burden change and population growth, with marker size indicating housing growth.
+The first chart above spotlights the best-performing metros among the “perfect YIMBY” group—those that combined strong housing growth with improved affordability. In the plot below, we broaden the view to see how **all** metros perform across rent burden change and population growth.
 
 ```{r yimby_success_viz_2, warning=FALSE, message=FALSE}
 # ---- Viz 2: 4-criteria map (change vs growth) ----
@@ -1182,19 +1182,18 @@ print(viz2)
 **Purpose**
 
 This brief advocates for a **Federal YIMBY Incentive Program** that rewards local governments for expanding housing supply and improving affordability.  
-The goal is to make housing attainable for working families while sustaining job growth in construction, health care, and other essential industries.
+The goal is to make housing attainable for working families while keeping job growth in essential industries like construction and health care.
 :::
 
 ### 1. Congressional Sponsors
 
 - **Primary Sponsor — Wilmington, NC Metro Area**  
-  Wilmington exemplifies *YIMBY* success. Since 2009 it has permitted new housing at one of the fastest rates relative to existing households.  
-  Median rents have stayed moderate, showing how flexible zoning and proactive permitting can restrain costs even following their population and job growth.  
+  Wilmington exemplifies *YIMBY* success. Since 2009 it has permitted new housing at one of the fastest rates.  
+  Median rents have stayed moderate, showing how flexible zoning  can restrain costs even following their   population and job growth.  
 
 - **Co-Sponsor — New York–Newark–Jersey City, NY-NJ-PA Metro Area**  
   The New York metro area faces some of the nation’s highest rent burdens and tightest housing supply.  
-  A federal incentive program would help such regions modernize zoning practices and accelerate building approvals by tying funding to measurable improvements in housing growth and affordability.  
-
+  A federal incentive program would help such regions modernize zoning practices and accelerate building approvals.  
 
 ---
 
@@ -1202,8 +1201,8 @@ The goal is to make housing attainable for working families while sustaining job
 
 | Occupation | Why This Group Should Support the Bill |
 |-------------|----------------------------------------|
-| **Construction and Skilled Trades** | Federal incentives for housing expansion directly boost demand for construction jobs. Wilmington’s data show that every 1 % increase in permitted units corresponds to measurable growth in construction employment and wages. |
-| **Health Care and Social Assistance (NAICS 62)** | High rent burdens disproportionately affect nurses, aides, and social-service staff. In metros such as New York, median rents consume over 40 % of household income. Lower rents would free disposable income and stabilize this essential workforce. |
+| **Construction and Skilled Trades** | Federal incentives for housing expansion directly boost demand for construction jobs. Wilmington’s data show that every 1 % increase in permitted units corresponds growth in construction employment. |
+| **Health Care and Social Assistance (NAICS 62)** | High rent burdens disproportionately affect nurses, aides, and social-service staff. In metros such as New York, median rents consume over 40 % of household income. Lower rents would help sav more from their salaries and stabilize this essential workforce. |
 
 ---
 
@@ -1229,24 +1228,23 @@ $$
 \frac{\text{Median Monthly Rent}}{\text{Median Household Income} / 12}
 $$  
 
-*Estimates the share of income spent on rent — lower values mean greater affordability.*
+*Estimates the share of income spent on rent — lower values mean affordability.*
 
-Both indicators are easily derived from the **American Community Survey (ACS)**, enabling transparent, evidence-based targeting of federal grants.
-
+Both indicators are easily derived from the **American Community Survey (ACS)**, enabling transparency.
 
 ---
 
 ### 4. Why This Matters
 
-- **For Voters:** Affordable housing allows families to save, spend, and stay in their communities ultimately.  
+- **For Voters:** Affordable housing allows families to save more, spend, and stay in their communities.  
 - **For Industries:** Stable housing costs sustain labor supply in key sectors like construction and healthcare.  
-- **For Congress:** A bipartisan opportunity — **pro-growth, pro-worker, and fiscally efficient.**
+- **For Congress:** A bipartisan opportunity supporting economic growth, social equity, and does not require new spending.
 
 ---
 
 ::: {.callout-tip title="Conclusion"}
 A **Federal YIMBY Incentive Program** would channel federal support toward cities that embrace responsible growth.  
-By pairing a *YIMBY leader* (Wilmington, NC) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can advance an agenda that lowers rents, expands opportunities and keep America building.
+By pairing a *YIMBY leader* (Wilmington, NC) with a *NIMBY reformer* (NY-NJ) and aligning the interests of construction and health-care workers, Congress can help lower rents, expands opportunities and keep America building.
 :::
 
 
@@ -1336,10 +1334,8 @@ The Census Bureau and BLS use slightly different metro definitions. “Los Angel
 
 ## Conclusion 
 
-The analysis conducted for this project shows how population growth, housing construction, and affordability interact across metropolitan areas in the United States. Using data from the U.S. Census Bureau (ACS) and the Bureau of Labor Statistics (QCEW), this project identified wide variation in local housing outcomes: some regions continue to expand their housing supply in step with demand, while others like NYC as an example, show signs of stagnation and cost pressure.
-
 By linking population trends to permit activity, the Housing Growth Metric revealed which CBSAs are keeping pace with demographic change. Areas like Wilmington, NC and other fast-growing metros demonstrate how a balanced way of new permits issuance can help stabilize rents and sustain affordability, while more constrained metros such as those in the New York–New Jersey area illustrate how limited housing production can amplify rent burden despite their economic strength.
 
-From a policy standpoint, these findings support the argument for a federal YIMBY initiative that rewards cities not only for expanding housing access but also for creating communities where affordability and opportunity can coexist. Encouraging local governments to align zoning flexibility, infrastructure investment, and long-term planning could lead to a more balanced regional housing markets.
+From a policy standpoint, these findings support the argument for a federal YIMBY initiative that rewards cities not only for expanding housing access but also for creating communities where affordability and opportunity can coexist.
 
-In sum, the evidence points to a clear takeaway: sustainable housing growth and affordability depend on supply responsiveness. Cities that embrace inclusive, forward-looking planning will be better positioned to attract residents, especially the millennial as an example, and deliver on the broader promise of making every backyard affordable for all.
+Cities that embrace inclusive and effective planning will be better positioned to attract residents, especially the millennial as an example, and deliver on the promise of making backyards affordable for all.
