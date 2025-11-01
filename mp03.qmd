@@ -34,12 +34,205 @@ Remember that code blocks look like this:
 # Your code goes in chunks like this
 library(tidyverse) # You will want this line for almost all MPs
 x <- 1 + 2 + 3
+
+
+# ============================================================================
+# Mini Project 03 - Data Acquisition Script
+# STA9750: Software Tools for Data Analysis
+# Author: Hyacinthe Sarr
+# ============================================================================
+# This script downloads NYC Council District boundaries and NYC Tree Points
+# data using responsible API practices as required by the project.
+# ============================================================================
+
+# Load required packages
+library(sf)
+library(dplyr)
+library(httr2)
+
+# Create data directory if it doesn't exist
+if(!dir.exists("data/mp03")) {
+  dir.create("data/mp03", recursive = TRUE, showWarnings = FALSE)
+  cat("✓ Created data/mp03 directory\n")
+}
+
+# ============================================================================
+# TASK 1: Download NYC City Council District Boundaries
+# ============================================================================
+# Downloads the boundaries of NYC's 51 council districts from ArcGIS Hub
+# Returns: sf object with district polygons in WGS84 coordinate system
+# ============================================================================
+
+get_council_districts <- function() {
+  cat("\n=== Downloading NYC Council District Boundaries ===\n")
+  
+  # Use ArcGIS Hub - NYC Planning's official data portal
+  api_url <- "https://services5.arcgis.com/GfwWNkhOj9bNBqoJ/arcgis/rest/services/NYC_City_Council_Districts/FeatureServer/0/query"
+  geojson_file <- "data/mp03/council_districts_arcgis.geojson"
+  
+  # Download only if file doesn't exist (responsible downloading)
+  if(!file.exists(geojson_file)) {
+    cat("Downloading from ArcGIS Hub...\n")
+    
+    resp <- request(api_url) %>%
+      req_url_query(
+        where = "1=1",           # Get all records
+        outFields = "*",          # All fields
+        returnGeometry = "true",  # Include geometries
+        f = "geojson"            # GeoJSON format
+      ) %>%
+      req_headers(`User-Agent` = "Mozilla/5.0 (Educational Project)") %>%
+      req_perform()
+    
+    writeBin(resp_body_raw(resp), geojson_file)
+    cat("✓ Downloaded GeoJSON file\n")
+  } else {
+    cat("✓ GeoJSON file already exists\n")
+  }
+  
+  # Read GeoJSON
+  cat("Reading GeoJSON...\n")
+  districts <- st_read(geojson_file, quiet = TRUE)
+  
+  # Verify geometries are valid
+  if(all(st_is_empty(districts))) {
+    stop("ERROR: Downloaded data has empty geometries!")
+  }
+  
+  # Transform to WGS84 coordinate system (as required)
+  cat("Transforming to WGS84...\n")
+  districts <- st_transform(districts, crs = "WGS84")
+  
+  cat("✓ Successfully loaded", nrow(districts), "council districts\n")
+  
+  return(districts)
+}
+
+# ============================================================================
+# TASK 2: Download NYC Tree Points from API
+# ============================================================================
+# Downloads all NYC street tree data using the Socrata API with pagination
+# Uses httr2 as required by project specifications
+# Returns: sf object with point locations of all ~680,000 NYC street trees
+# ============================================================================
+
+get_tree_points <- function(limit = 50000) {
+  cat("\n=== Downloading NYC Tree Points ===\n")
+  
+  # Base URL for the NYC OpenData Tree Points API (Socrata)
+  base_url <- "https://data.cityofnewyork.us/resource/uvpi-gqnh.geojson"
+  
+  # Initialize pagination variables
+  offset <- 0
+  all_files <- list()
+  page_num <- 1
+  
+  # Page through entire dataset using $limit and $offset parameters
+  repeat {
+    filename <- file.path("data/mp03", sprintf("trees_page_%03d.geojson", page_num))
+    
+    # Check if file already exists (avoid re-downloading)
+    if(file.exists(filename)) {
+      cat(sprintf("✓ Page %d already downloaded\n", page_num))
+      all_files[[page_num]] <- filename
+      
+      # Check if we got fewer results (indicates end of dataset)
+      test_data <- st_read(filename, quiet = TRUE)
+      if(nrow(test_data) < limit) {
+        cat("✓ Reached end of dataset\n")
+        break
+      }
+      
+      offset <- offset + limit
+      page_num <- page_num + 1
+      next
+    }
+    
+    # Download this page using httr2
+    cat(sprintf("Downloading page %d (offset: %d)...\n", page_num, offset))
+    
+    resp <- request(base_url) %>%
+      req_url_query(`$limit` = limit, `$offset` = offset) %>%
+      req_headers(`User-Agent` = "Mozilla/5.0 (Educational Project)") %>%
+      req_retry(max_tries = 3) %>%
+      req_perform()
+    
+    # Save response to file
+    writeBin(resp_body_raw(resp), filename)
+    all_files[[page_num]] <- filename
+    cat(sprintf("✓ Saved page %d\n", page_num))
+    
+    # Read to check how many records we got
+    current_data <- st_read(filename, quiet = TRUE)
+    n_records <- nrow(current_data)
+    cat(sprintf("  Retrieved %d records\n", n_records))
+    
+    # If we got fewer than limit, we've reached the end
+    if(n_records < limit) {
+      cat("✓ Reached end of dataset\n")
+      break
+    }
+    
+    # Update for next iteration
+    offset <- offset + limit
+    page_num <- page_num + 1
+    
+    # Be polite - add a small delay between requests
+    Sys.sleep(0.5)
+  }
+  
+  # Read and combine all GeoJSON files
+  cat("\nCombining all tree point files...\n")
+  tree_list <- lapply(all_files, function(f) {
+    st_read(f, quiet = TRUE)
+  })
+  
+  trees <- bind_rows(tree_list)
+  cat("✓ Successfully loaded", format(nrow(trees), big.mark = ","), "trees\n")
+  
+  return(trees)
+}
+
+# ============================================================================
+# Execute Data Download
+# ============================================================================
+
+cat("\n")
+cat("╔══════════════════════════════════════════════════════════════╗\n")
+cat("║  Mini Project 03: Data Acquisition for NYC Green Canopy     ║\n")
+cat("╚══════════════════════════════════════════════════════════════╝\n")
+
+# Download council districts
+DISTRICTS <- get_council_districts()
+
+# Download tree points (this will take 5-15 minutes)
+TREES <- get_tree_points()
+
+# Summary
+cat("\n")
+cat("╔══════════════════════════════════════════════════════════════╗\n")
+cat("║  Data Acquisition Complete!                                  ║\n")
+cat("╚══════════════════════════════════════════════════════════════╝\n")
+cat("\nSummary:\n")
+cat(sprintf("  • Council Districts: %d\n", nrow(DISTRICTS)))
+cat(sprintf("  • Tree Points: %s\n", format(nrow(TREES), big.mark = ",")))
+cat("\nData saved in: data/mp03/\n")
+cat("\nYou're ready to start working on the tasks!\n\n")
+
+# Save RDS files for quick reloading later
+saveRDS(DISTRICTS, "data/mp03/districts.rds")
+saveRDS(TREES, "data/mp03/trees.rds")
+cat("✓ Saved RDS files for quick reloading\n")
+cat("  To reload: DISTRICTS <- readRDS('data/mp03/districts.rds')\n")
+cat("             TREES <- readRDS('data/mp03/trees.rds')\n\n")
+
+
 ```
 
 and you can then print variables from chunks: 
 
 ```{r}
-x
+
 ```
 
 or inline, like this: $x$ is `r x`.
