@@ -22,7 +22,7 @@ execute:
 
 # Introduction
 
-In the biggest city in America, trees are more than urban decoration, they are vital infrastructure for the air quality, shade, and community wellbeing. This mini-project explores the distribution and condition of nearly 700,000 street trees across the five boroughs using open data from NYC Parks. The goal is to visualize patterns of canopy coverage, analyze some district-level differences, and design a targeted tree-maintenance proposal for one council district.
+In the biggest city in America, trees are more than urban decoration, they are vital infrastructure for the air quality, shade, and community well-being. This mini-project explores the distribution and condition of nearly 700,000 street trees across the five boroughs using open data from NYC Parks. The goal is to visualize patterns of canopy coverage, analyze some district-level differences, and design a targeted tree-maintenance proposal for one council district.
 
 ## Data Acquisition
 
@@ -491,7 +491,7 @@ datatable(
 ```
 
 
-District `r highlight(q1_answer$CounDist)` has the most trees, with`r highlight(fmt_int(q1_answer$n_trees))` trees.
+District `r highlight(q1_answer$CounDist)` has the most trees, with `r highlight(fmt_int(q1_answer$n_trees))` trees.
 
 **2. Question 2: Which district has the highest density of trees?**
 
@@ -501,6 +501,16 @@ library(dplyr)
 library(sf)
 library(DT)
 library(scales)
+
+
+# Red + bold
+highlight <- function(x) paste0('<span style="color:#e41a1c;"><b>', x, "</b></span>")
+
+# Number helpers used in inlines
+fmt_int <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+fmt_num <- function(x, digits = 1) format(round(as.numeric(x), digits),
+                                         nsmall = digits, big.mark = ",",
+                                         trim = TRUE, scientific = FALSE)
 
 # Helper: borough labels
 borough_map <- function(d){
@@ -588,6 +598,9 @@ dt
 
 ```
 
+District `r highlight(q2_answer$CounDist[[1]])` has the highest tree density , with `r highlight(fmt_num(q2_answer$trees_per_sqmi[[1]], 1))` trees/sq mi
+(`r highlight(fmt_num(q2_answer$trees_per_acre[[1]], 2))` trees/acre).
+
 **3: Which district has the highest fraction of dead trees?**
 
 ```{r}
@@ -596,6 +609,15 @@ library(dplyr)
 library(sf)
 library(DT)
 library(scales)
+
+# Red + bold
+highlight <- function(x) paste0('<span style="color:#e41a1c;"><b>', x, "</b></span>")
+
+# Number helpers used in inlines
+fmt_int <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+fmt_num <- function(x, digits = 1) format(round(as.numeric(x), digits),
+                                         nsmall = digits, big.mark = ",",
+                                         trim = TRUE, scientific = FALSE)
 
 # Rebuild q3_table / q3_answer if missing
 if (!exists("q3_table") || !exists("q3_answer")) {
@@ -659,17 +681,14 @@ formatStyle(
 
 ```
 
-District `r highlight(q3_answer$CounDist[[1]])` has the highest fraction of dead trees —
-`r highlight(fmt_num(100 * as.numeric(q3_answer$frac_dead[[1]]), 2))`%
+District `r highlight(q3_answer$CounDist[[1]])` has the highest fraction of dead trees, with `r highlight(fmt_num(100 * as.numeric(q3_answer$frac_dead[[1]]), 2))`%
 (`r highlight(fmt_int(q3_answer$dead_trees[[1]]))` of
 `r highlight(fmt_int(q3_answer$total_trees[[1]]))` trees).
+
 **4. Question 4: What is the most common tree species in Manhattan?**
 
 ```{r}
 
-highlight <- function(x) sprintf("**%s**", x)
-fmt_int   <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
-fmt_num   <- function(x, digits = 1) format(round(as.numeric(x), digits), nsmall = digits, big.mark = ",", trim = TRUE, scientific = FALSE)
 
 # borough mapping from district id
 borough_map <- function(d){
@@ -704,11 +723,11 @@ species_cols_q4 <- intersect(c("spc_common","genusspecies","spc_latin"), names(q
 q4_species <- if (length(species_cols_q4)) as.character(q4_answer[[species_cols_q4[1]]]) else "Unknown species"
 
 ```
-The most common tree species in Manhattan is `r highlight(q4_species)` with `r highlight(fmt_int(q4_answer$n))` trees.
+
+The most common tree species in Manhattan is `r highlight(q4_species)` with
+`r highlight(fmt_int(q4_answer$n[[1]]))` trees.
 
 **5. Question 5: Which tree is closest to Baruch College's campus?**
-
-
 
 ```{r}
 # Self-contained Task 5 map (rebuilds anything missing)
@@ -797,9 +816,9 @@ leaflet() |>
 
 ```
 
-The closest tree to Baruch College is a `r highlight(q5_answer$species)` located 
-`r highlight(fmt_num(q5_answer$distance_ft, 1))` ft 
-(`r highlight(fmt_num(q5_answer$distance_ft * 0.3048, 1))` m) away.
+The closest tree to Baruch College is a `r highlight(q5_answer$species[[1]])` located
+`r highlight(scales::comma(q5_answer$distance_ft[[1]], 1))` ft
+(`r highlight(sprintf("%.1f", q5_answer$distance_m[[1]]))` m) away.
 
 ## Government Project Design
 
@@ -1002,11 +1021,10 @@ ggsave("docs/images/d16_top5_species_alive_dead.png", p_d16_bar, width = 7.5, he
 ---
 
 ### Expected Outcomes
-- Replace > 90% of dead trees within 12 months.  
-- Increase canopy cover by ≈ 5% by 2026.  
+- Replace more than 90% of dead trees within 12 months.  
+- Increase canopy cover by nearly 5% by 2026.  
 - Engage 200+ residents through planting events and education.  
 - Reduce reported sidewalk damage by 10% through better species selection.
-
 
 ## Extra Credit Opportunity #01 — Improved Tree Map Visualizations
 
