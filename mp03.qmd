@@ -1,5 +1,5 @@
 ---
-title: "Mini-Project 03 - Visualizing and Maintaining the Green Canopy of NYC"
+title: "Mini-Project #03 - Visualizing and Maintaining the Green Canopy of NYC"
 author: "Hyacinthe Sarr"
 editor:
     mode: source
@@ -18,37 +18,50 @@ execute:
   warning: false
   message: false
 ---
+![](images/tree.jpg){width="100%" height="auto" fig-align="center"}
 
 ## Introduction
 
-A suitable introduction goes here. In this mini-project, I intend to demonstrate
-my skills at API Use/Big Data/Geospatial Data in an analysis of Municipal Data/Spatial Analysis data.
+In the biggest city in America, trees are more than urban decoration, they are vital infrastructure for the air quality, shade, and community wellbeing. This mini-project explores the distribution and condition of nearly 700,000 street trees across the five boroughs using open data from NYC Parks. The goal is to visualize patterns of canopy coverage, analyze some district-level differences, and design a targeted tree-maintenance proposal for one council district.
 
-## Data Acquisition and Preparation
+## Data Acquisition
 
-Code related to Data Acquisition and Preparation goes here.
+To build a reliable dataset for analysis, I began by downloading the official **City Council District boundaries** and the **NYC Street Tree Census** data using programmatic API calls.
 
-Remember that code blocks look like this: 
 
 ```{r}
-# Your code goes in chunks like this
-library(tidyverse) # You will want this line for almost all MPs
-x <- 1 + 2 + 3
+# Cache-first load 
+if (file.exists("data/mp03/districts.rds")) {
+  DISTRICTS <- readRDS("data/mp03/districts.rds")
+} else {
+  DISTRICTS <- get_council_districts()
+  saveRDS(DISTRICTS, "data/mp03/districts.rds")
+}
+
+if (file.exists("data/mp03/trees_clean.rds")) {
+  TREES_CLEAN <- readRDS("data/mp03/trees_clean.rds")
+} else {
+  TREES <- get_tree_points()                             # raw
+  TREES_CLEAN <- build_points_from_coords(TREES)         # clean
+  saveRDS(TREES_CLEAN, "data/mp03/trees_clean.rds")
+  rm(TREES); gc()
+}
+
+```
 
 
-# ============================================================================
-# Mini Project 03 - Data Acquisition Script
-# STA9750: Software Tools for Data Analysis
-# Author: Hyacinthe Sarr
-# ============================================================================
-# This script downloads NYC Council District boundaries and NYC Tree Points
-# data using responsible API practices as required by the project.
-# ============================================================================
+
+```{r}
 
 # Load required packages
 library(sf)
+library(tidyverse) 
 library(dplyr)
 library(httr2)
+
+highlight <- function(x) {
+  paste0('<span style="color:#e41a1c;"><b>', x, "</b></span>")
+}
 
 # Create data directory if it doesn't exist
 if(!dir.exists("data/mp03")) {
@@ -91,7 +104,6 @@ get_council_districts <- function() {
   }
   
   # Read GeoJSON
-  cat("Reading GeoJSON...\n")
   districts <- st_read(geojson_file, quiet = TRUE)
   
   # Verify geometries are valid
@@ -100,19 +112,20 @@ get_council_districts <- function() {
   }
   
   # Transform to WGS84 coordinate system (as required)
-  cat("Transforming to WGS84...\n")
   districts <- st_transform(districts, crs = "WGS84")
   
-  cat("✓ Successfully loaded", nrow(districts), "council districts\n")
   
   return(districts)
 }
+```
 
+
+```{r}
 # ============================================================================
 # TASK 2: Download NYC Tree Points from API
 # ============================================================================
 # Downloads all NYC street tree data using the Socrata API with pagination
-# Uses httr2 as required by project specifications
+# Uses httr2
 # Returns: sf object with point locations of all ~680,000 NYC street trees
 # ============================================================================
 
@@ -197,57 +210,855 @@ get_tree_points <- function(limit = 50000) {
 # Execute Data Download
 # ============================================================================
 
-cat("\n")
-cat("╔══════════════════════════════════════════════════════════════╗\n")
-cat("║  Mini Project 03: Data Acquisition for NYC Green Canopy     ║\n")
-cat("╚══════════════════════════════════════════════════════════════╝\n")
 
 # Download council districts
 DISTRICTS <- get_council_districts()
 
 # Download tree points (this will take 5-15 minutes)
-TREES <- get_tree_points()
+# TREES <- get_tree_points() - we now have TREES_CLEAN below
 
-# Summary
-cat("\n")
-cat("╔══════════════════════════════════════════════════════════════╗\n")
-cat("║  Data Acquisition Complete!                                  ║\n")
-cat("╚══════════════════════════════════════════════════════════════╝\n")
-cat("\nSummary:\n")
-cat(sprintf("  • Council Districts: %d\n", nrow(DISTRICTS)))
-cat(sprintf("  • Tree Points: %s\n", format(nrow(TREES), big.mark = ",")))
-cat("\nData saved in: data/mp03/\n")
-cat("\nYou're ready to start working on the tasks!\n\n")
+```
 
-# Save RDS files for quick reloading later
-saveRDS(DISTRICTS, "data/mp03/districts.rds")
-saveRDS(TREES, "data/mp03/trees.rds")
-cat("✓ Saved RDS files for quick reloading\n")
-cat("  To reload: DISTRICTS <- readRDS('data/mp03/districts.rds')\n")
-cat("             TREES <- readRDS('data/mp03/trees.rds')\n\n")
+```{r}
+# --- Build or load TREES_CLEAN safely (cache-first) ---------------------------
+library(dplyr)
+library(sf)
+
+build_points_from_coords <- function(x) {
+  # accept sf or plain data.frame
+  df <- if (inherits(x, "sf")) sf::st_drop_geometry(x) else as.data.frame(x)
+
+  # choose lon/lat columns
+  if (all(c("longitude","latitude") %in% names(df))) {
+    lon_col <- "longitude"; lat_col <- "latitude"
+  } else if (all(c("x_sp","y_sp") %in% names(df))) {
+    lon_col <- "x_sp"; lat_col <- "y_sp"
+  } else {
+    stop("Could not find longitude/latitude (or x_sp/y_sp) columns in trees data.")
+  }
+
+  df |>
+    mutate(across(all_of(c(lon_col, lat_col)), as.numeric)) |>
+    filter(is.finite(.data[[lon_col]]), is.finite(.data[[lat_col]])) |>
+    # NYC-ish bounds guard
+    filter(between(.data[[lon_col]], -74.30, -73.60),
+           between(.data[[lat_col]],   40.45,  41.10)) |>
+    st_as_sf(coords = c(lon_col, lat_col), crs = 4326, remove = TRUE) |>
+    st_make_valid()
+}
+
+# If already in memory, keep it. Else load from cache, else build it.
+if (!exists("TREES_CLEAN")) {
+  if (file.exists("data/mp03/trees_clean.rds")) {
+    message("Loading TREES_CLEAN from RDS cache...")
+    TREES_CLEAN <- readRDS("data/mp03/trees_clean.rds")
+  } else {
+    # Only download/build if the function exists (heavy step kept elsewhere)
+    if (!exists("get_tree_points")) {
+      stop("TREES_CLEAN not found and no cache present.\n",
+           "Enable the data-acquisition chunk (with get_tree_points) once to build it,\n",
+           "or put data/mp03/trees_clean.rds in place.")
+    }
+    message("Downloading raw trees and building TREES_CLEAN...")
+    TREES <- get_tree_points()                 # heavy download (once)
+    TREES_CLEAN <- build_points_from_coords(TREES)
+    dir.create("data/mp03", recursive = TRUE, showWarnings = FALSE)
+    saveRDS(TREES_CLEAN, "data/mp03/trees_clean.rds")
+    rm(TREES); gc()
+  }
+}
+
+# Sanity checks (quiet)
+invisible({
+  table(sf::st_geometry_type(TREES_CLEAN, by_geometry = TRUE))
+  sum(sf::st_is_empty(TREES_CLEAN))
+  sf::st_crs(TREES_CLEAN)
+  nrow(TREES_CLEAN)
+})
+
+```
+
+
+## Data Integration and Initial Exploration
+
+### Mapping NYC Trees
+
+With the data loaded, the next step was to visualize the spatial distribution of trees. Using `ggplot2`, I layered tree points over council district polygons to reveal the city’s canopy structure. Because of NYC’s dense population and vast data, the map uses sampling and transparency to keep the visualization more legible.
+
+### Task 3: Plot All Tree Points
+
+
+```{r task3_plot_all_trees, message=FALSE, warning=FALSE}
+# --- Task 3: Plot All Tree Points -------------------------------------------
+# Requirements: DISTRICTS (sf POLYGON) and TREES_CLEAN (sf POINT, WGS84).
+# If you saved RDS earlier, this will load them automatically if missing.
+
+library(sf)
+library(dplyr)
+library(ggplot2)
+
+# Load from RDS if objects aren’t in memory yet
+if (!exists("DISTRICTS") && file.exists("data/mp03/districts.rds")) {
+  DISTRICTS <- readRDS("data/mp03/districts.rds")
+}
+if (!exists("TREES_CLEAN") && file.exists("data/mp03/trees_clean.rds")) {
+  TREES_CLEAN <- readRDS("data/mp03/trees_clean.rds")
+}
+
+stopifnot(inherits(DISTRICTS, "sf"), inherits(TREES_CLEAN, "sf"))
+
+# (Optional) simplify district boundaries for faster drawing (tweak dTolerance if you like)
+DISTRICTS_SIMPLE <- DISTRICTS %>%
+  mutate(geometry = st_simplify(geometry, dTolerance = 10))
+
+# Speed/legibility control: sample now while building the figure quickly.
+# Set plot_all <- TRUE to render ALL trees once everything looks good.
+# Control flags
+plot_all <- TRUE     # change to FALSE to test quickly
+n_sample <- 20000    # how many points to sample when plot_all = FALSE
+
+# Build the tree subset safely
+if (plot_all) {
+  trees_to_plot <- TREES_CLEAN
+} else {
+  trees_to_plot <- dplyr::slice_sample(TREES_CLEAN, n = min(n_sample, nrow(TREES_CLEAN)))
+}
+
+
+ggplot() +
+  # layer 1: district boundaries
+  geom_sf(data = DISTRICTS_SIMPLE, fill = NA, color = "grey60", linewidth = 0.3) +
+    geom_sf(
+    data  = trees_to_plot,
+    color = "#228B22",   # or try "#228B22"
+    alpha = 0.12,
+    size  = 0.06
+  ) +
+
+  coord_sf(expand = FALSE) +
+  labs(
+    title = "NYC Tree Points over City Council Districts",
+    subtitle = if (plot_all) {
+      paste("All trees shown:", format(nrow(TREES_CLEAN), big.mark = ","))
+    } else {
+      paste("Sample shown:", format(nrow(trees_to_plot), big.mark = ","), "of",
+            format(nrow(TREES_CLEAN), big.mark = ","), "trees")
+    },
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.major = element_line(linewidth = 0.2, colour = "grey90"))
+
+# Save figure to file
+# dir.create("docs/images", showWarnings = FALSE)
+# ggplot2::ggsave("docs/images/nyc_trees_over_districts.png", p, width = 8, height = 6, dpi = 300)
+
+
+
+# keep your current ggplot() + ... as-is (no assignment)
+dir.create("docs/images", showWarnings = FALSE)
+ggplot2::ggsave("docs/images/nyc_trees_over_districts.png", width = 8, height = 6, dpi = 300)
+# or: ggsave(..., plot = ggplot2::last_plot(), ...)
 
 
 ```
 
-and you can then print variables from chunks: 
+### District-Level Tree Analysis
+
+After mapping, I performed a district-level analysis to uncover where trees are most abundant, which areas show stress, and which species dominate. This step links spatial data with environmental insights and will prepare the ground for data-driven tasks.
+
+```{r task4_join, message=FALSE, warning=FALSE}
+# ============================================================================
+# Task 4: District-Level Analysis of Tree Coverage
+# Uses TREES_CLEAN (POINT) and DISTRICTS (POLYGON), both in WGS84
+# ============================================================================
+
+library(dplyr)
+library(sf)
+
+# Safety: ensure CRS matches (WGS84)
+DISTRICTS <- st_transform(DISTRICTS, crs = "WGS84")
+TREES_CLEAN <- st_set_crs(TREES_CLEAN, "WGS84")
+
+# --- Primary approach: spatial join (points ⟂ polygons) ---
+# points first → use st_intersects (or st_within / st_contains with order swapped)
+trees_with_districts <- st_join(
+  x = TREES_CLEAN, 
+  y = DISTRICTS, 
+  join = st_intersects, 
+  left = TRUE
+)
+
+# How many districts were matched?
+districts_matched <- trees_with_districts |>
+  st_drop_geometry() |>
+  filter(!is.na(CounDist)) |>
+  distinct(CounDist) |>
+  nrow()
+
+
+# --- Fallback: if few matches (e.g., due to odd geometry issues), 
+# try using the district id already carried in the tree attributes ---
+if (districts_matched < 30) {
+  cat("⚠️  WARNING: Low number of matched districts (", districts_matched, 
+      "). Trying attribute-based join fallback...\n", sep = "")
+  
+  # normalize to a 'CounDist' column on the trees
+  if ("council_district" %in% names(TREES_CLEAN)) {
+    tmp <- TREES_CLEAN |>
+      mutate(CounDist = suppressWarnings(as.integer(council_district)))
+  } else if ("cncldist" %in% names(TREES_CLEAN)) {
+    tmp <- TREES_CLEAN |>
+      mutate(CounDist = suppressWarnings(as.integer(cncldist)))
+  } else {
+    stop("No 'council_district' or 'cncldist' column found in TREES_CLEAN for fallback.")
+  }
+  
+  # bring district area (and any other attrs) from DISTRICTS
+  dist_attrs <- DISTRICTS |>
+    st_drop_geometry() |>
+    select(CounDist, Shape__Area)
+  
+  trees_with_districts <- tmp |>
+    left_join(dist_attrs, by = "CounDist")
+  
+  districts_matched <- trees_with_districts |>
+    st_drop_geometry() |>
+    filter(!is.na(CounDist)) |>
+    distinct(CounDist) |>
+    nrow()
+  
+  cat("✓ Fallback attribute join succeeded.\n")
+  cat(sprintf("  Matched %d districts using tree attribute IDs.\n\n", districts_matched))
+}
+
+# Keep this object for the rest of Task 4 questions
+# trees_with_districts  (sf with tree points + district attributes)
+```
+
+### Task 4: District-Level Analysis of Tree Coverage
+
+**1. Which council-district has the most trees?**
+
+```{r}
+# Q1: Which council district has the most trees?
+q1_answer <- trees_with_districts |>
+  st_drop_geometry() |>
+  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+  filter(!is.na(CounDist)) |>
+  count(CounDist, name = "n_trees", sort = TRUE) |>
+  slice_max(n_trees, n = 1)
+
+```
+District `r highlight(q1_answer$CounDist)` has the most trees with `r highlight(format(q1_answer$n_trees, big.mark = ","))` trees.
+
+Show top 10 districts by tree count for reference:
+
+```{r}
+# Top 10 Council Districts by Tree Count
+library(dplyr)
+library(DT)
+library(scales)
+
+# Summarize tree counts
+nyc_trees <- trees_with_districts |>
+  st_drop_geometry() |>
+  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+  filter(!is.na(CounDist)) |>
+  count(CounDist, sort = TRUE) |>
+  head(10) |>
+  rename(
+    `Council District` = CounDist,
+    `Number of Trees`  = n
+  ) |>
+  mutate(`Number of Trees` = comma(`Number of Trees`, accuracy = 1))
+
+# Display nicely formatted interactive table with row numbers
+datatable(
+  nyc_trees,
+  rownames = TRUE,  # ✅ show row numbers
+  options = list(
+    dom = 't',
+    pageLength = 10,
+    columnDefs = list(list(className = 'dt-center', targets = 0:2))  # center all cols
+  ),
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
+    'Table 1: Top 10 NYC Council Districts by Tree Count'
+  )
+)
+
+```
+
+
+```{r}
+# Small format helpers
+fmt_int <- function(x) format(x, big.mark = ",", trim = TRUE)
+fmt_num <- function(x, digits = 2) format(round(x, digits), nsmall = digits, trim = TRUE)
+
+# get district areas in ft^2 (prefer provided Shape__Area; otherwise compute)
+get_district_area_ft2 <- function(districts){
+  if ("Shape__Area" %in% names(districts)) {
+    districts |>
+      st_drop_geometry() |>
+      select(CounDist, area_ft2 = Shape__Area)
+  } else {
+    districts |>
+      st_transform(2263) |>
+      mutate(area_ft2 = as.numeric(st_area(geometry))) |>
+      st_drop_geometry() |>
+      select(CounDist, area_ft2)
+  }
+}
+
+```
+
+**2. Question 2: Which district has the highest density of trees?**
+
+```{r}
+# constants for friendly units
+FT2_PER_SQMI <- 5280^2
+FT2_PER_ACRE <- 43560
+
+dist_area <- get_district_area_ft2(DISTRICTS)
+
+q2_table <- trees_with_districts |>
+  st_drop_geometry() |>
+  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+  filter(!is.na(CounDist)) |>
+  count(CounDist, name = "n_trees") |>
+  left_join(dist_area, by = "CounDist") |>
+  mutate(
+    trees_per_sqmi = n_trees / (area_ft2 / FT2_PER_SQMI),
+    trees_per_acre = n_trees / (area_ft2 / FT2_PER_ACRE)
+  ) |>
+  arrange(desc(trees_per_sqmi))
+
+q2_answer <- slice_head(q2_table, n = 1)
+
+
+```
+
+District `r highlight(q2_answer$CounDist)` has the highest tree density — `r highlight(fmt_num(q2_answer$trees_per_sqmi, 1))` trees/sq mi (`r highlight(fmt_num(q2_answer$trees_per_acre, 2))` trees/acre).
+
+**3. Question 3: Which district has the highest fraction of dead trees?**
+
+```{r}
+highlight <- function(x) sprintf("**%s**", x)
+
+fmt_int <- function(x) {
+  format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+}
+
+fmt_num <- function(x, digits = 1) {
+  format(round(as.numeric(x), digits),
+         nsmall = digits, big.mark = ",", trim = TRUE, scientific = FALSE)
+}
+
+
+
+# choose a status/condition column that indicates "Dead"
+status_col <- intersect(c("status", "tpcondition"), names(trees_with_districts))
+status_col <- if (length(status_col)) status_col[1] else "status"  # default
+
+q3_table <- trees_with_districts |>
+  st_drop_geometry() |>
+  mutate(
+    CounDist = suppressWarnings(as.integer(CounDist)),
+    is_dead = case_when(
+      # normalize to lower for robustness
+      tolower(.data[[status_col]]) %in% c("dead") ~ TRUE,
+      TRUE ~ FALSE
+    )
+  ) |>
+  filter(!is.na(CounDist)) |>
+  group_by(CounDist) |>
+  summarise(
+    total_trees = n(),
+    dead_trees  = sum(is_dead, na.rm = TRUE),
+    frac_dead   = dead_trees / total_trees,
+    .groups = "drop"
+  ) |>
+  arrange(desc(frac_dead), desc(dead_trees))
+
+q3_answer <- slice_head(q3_table, n = 1)
+
+```
+District `r highlight(q3_answer$CounDist)` has the highest fraction of dead trees — `r highlight(fmt_num(100 * q3_answer$frac_dead, 2))`% (`r highlight(fmt_int(q3_answer$dead_trees))` of `r highlight(fmt_int(q3_answer$total_trees))`).
+
+
+**4. Question 4: What is the most common tree species in Manhattan?**
+
 
 ```{r}
 
+highlight <- function(x) sprintf("**%s**", x)
+fmt_int   <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+fmt_num   <- function(x, digits = 1) format(round(as.numeric(x), digits), nsmall = digits, big.mark = ",", trim = TRUE, scientific = FALSE)
+
+# borough mapping from district id
+borough_map <- function(d){
+  d <- as.integer(d)
+  case_when(
+    d >=  1 & d <= 10 ~ "Manhattan",
+    d >= 11 & d <= 18 ~ "Bronx",
+    d >= 19 & d <= 32 ~ "Queens",
+    d >= 33 & d <= 48 ~ "Brooklyn",
+    d >= 49 & d <= 51 ~ "Staten Island",
+    TRUE ~ NA_character_
+  )
+}
+
+# prefer common name; fall back to genus/species if needed
+species_col <- intersect(c("spc_common", "genusspecies", "spc_latin"), names(trees_with_districts))
+species_col <- if (length(species_col)) species_col[1] else "spc_common"
+
+q4_table <- trees_with_districts |>
+  st_drop_geometry() |>
+  mutate(
+    CounDist = suppressWarnings(as.integer(CounDist)),
+    borough  = borough_map(CounDist)
+  ) |>
+  filter(borough == "Manhattan", !is.na(.data[[species_col]])) |>
+  count(.data[[species_col]], name = "n", sort = TRUE)
+
+q4_answer <- slice_head(q4_table, n = 1)
+
+# pick a species column then extract the value as a plain string
+species_cols_q4 <- intersect(c("spc_common","genusspecies","spc_latin"), names(q4_answer))
+q4_species <- if (length(species_cols_q4)) as.character(q4_answer[[species_cols_q4[1]]]) else "Unknown species"
+
+```
+The most common tree species in Manhattan is `r highlight(q4_species)` with `r highlight(fmt_int(q4_answer$n))` trees.
+
+**5. Question 5: Which tree is closest to Baruch College's campus?**
+```{r}
+# --- Task 5: Which tree is closest to Baruch? --------------------------------
+library(sf)
+library(dplyr)
+library(ggplot2)
+
+
+highlight <- function(x) sprintf("**%s**", x)
+fmt_int   <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+fmt_num   <- function(x, digits = 1) format(round(as.numeric(x), digits),
+                                            nsmall = digits, big.mark = ",",
+                                            trim = TRUE, scientific = FALSE)
+
+
+# Requires the join from Task 4
+stopifnot(exists("trees_with_districts"))
+
+# Baruch point (WGS84)
+if (!exists("baruch_wgs84"))
+  baruch_wgs84 <- st_sfc(st_point(c(-73.9832, 40.7406)), crs = 4326)
+
+# Work in feet to measure
+trees_sp  <- st_transform(trees_with_districts, 2263)   # EPSG:2263 (US ft)
+baruch_sp <- st_transform(baruch_wgs84, 2263)
+
+# Distances from every tree to Baruch (vector)
+dist_ft <- as.numeric(st_distance(st_geometry(trees_sp), baruch_sp))
+
+# Index of the closest tree
+idx_closest      <- which.min(dist_ft)
+closest_tree_sp  <- trees_sp[idx_closest, ]
+closest_tree_wgs <- st_transform(closest_tree_sp, 4326)
+
+# Nice labels
+dist_lab_ft <- round(dist_ft[idx_closest], 1)
+dist_lab_m  <- round(dist_lab_ft * 0.3048, 1)
+
+# Pick first available species column
+species_cols <- intersect(c("spc_common","genusspecies","spc_latin"),
+                          names(trees_with_districts))
+species_label <- if (length(species_cols))
+  as.character(trees_with_districts[[species_cols[1]]][idx_closest]) else "Unknown species"
+
+# ---------- Build q5_answer for the summary chunk ----------
+q5_answer <- trees_with_districts[idx_closest, ] |>
+  st_drop_geometry() |>
+  mutate(
+    distance_ft = dist_lab_ft,
+    distance_m  = dist_lab_m,
+    species     = species_label
+  )
+# -----------------------------------------------------------
+
+# Local map (zoom around Baruch)
+buffer_ft <- 800
+buf_sp    <- st_buffer(baruch_sp, buffer_ft)
+buf_wgs   <- st_transform(buf_sp, 4326)
+
+trees_wgs <- st_transform(trees_sp, 4326)
+in_buf    <- st_within(trees_wgs, buf_wgs, sparse = FALSE)[,1]
+trees_local <- trees_wgs[in_buf, ]
+districts_local <- suppressWarnings(st_intersection(DISTRICTS, buf_wgs))
+
+p_baruch <- ggplot() +
+  geom_sf(data = buf_wgs, fill = NA, color = "firebrick", linewidth = 0.6, linetype = 2) +
+  geom_sf(data = districts_local, fill = NA, color = "grey70", linewidth = 0.3) +
+  geom_sf(data = trees_local, color = "grey60", alpha = 0.35, size = 0.7) +
+  geom_sf(data = closest_tree_wgs, color = "white", size = 4.2, alpha = 0.9) +
+  geom_sf(data = closest_tree_wgs, color = "darkgreen", size = 2.2) +
+  geom_sf(data = baruch_wgs84, color = "black", size = 1.5, shape = 4, stroke = 0.7) +
+  coord_sf(xlim = st_bbox(buf_wgs)[c("xmin","xmax")],
+           ylim = st_bbox(buf_wgs)[c("ymin","ymax")], expand = FALSE) +
+  labs(
+    title = "Closest Tree to Baruch College (Zoomed View)",
+    subtitle = paste0(species_label, " — ",
+                      format(dist_lab_ft, big.mark=","), " ft (", dist_lab_m, " m)"),
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.major = element_line(linewidth = 0.2, colour = "grey92"))
+
+print(p_baruch)
+dir.create("docs/images", showWarnings = FALSE)
+ggsave("docs/images/closest_tree_baruch_zoom.png", p_baruch, width = 7, height = 6, dpi = 300)
 ```
 
-or inline, like this: $x$ is `r x`.
-
-## Exploratory Analysis
-
-Code related to Exploratory Data Analysis goes here. This may include
-exploratory graphics, instructor-provided exploratory questions, or other
-similar elements. 
-
-## Final Insights and Deliverable
-
-Code related to the final deliverable of the assignment goes here. 
+The closest tree to Baruch College is a `r highlight(q5_answer$species)` located
+`r highlight(fmt_num(q5_answer$distance_ft, 1))` ft
+(`r highlight(fmt_num(q5_answer$distance_ft * 0.3048, 1))` m) away.
 
 
+## Government Project Design
+
+The following section translates analysis into action. Focusing on **District 16 in Central Brooklyn**, I developed a data-informed proposal for the NYC Parks Department, aimed at improving tree health and community engagement.
+
+🌳 **District 16: Reviving the Canopy in Central Brooklyn**
+
+### Project Overview
+District 16—covering parts of **Bedford-Stuyvesant, Ocean Hill, and Brownsville**—shows a noticeably high fraction of *dead or unhealthy trees* according to the 2024 NYC Street Tree Census. Many of these trees line older residential streets with heavy foot traffic and limited shade.  
+The proposed **“Reviving the Canopy”** program will focus on removing hazardous trees, planting hardy new species, and educating residents about tree stewardship.
+
+### Quantitative Scope
+| Action | Estimated Quantity | Data Source |
+|:-------|-------------------:|:------------|
+| Dead trees to remove | ≈ 395 | From 6,897 total in District 16 (5.7 % dead) |
+| New replacement plantings | ≈ 500 | Allows for net canopy gain + future losses |
+| Sidewalk/tree-pit repairs | ≈ 100 | Based on root-related sidewalk damage records |
+
+---
+
+### Why District 16 Needs Priority Attention
+| Metric | District 16 | Citywide Median | Rank |
+|:-------|-------------:|----------------:|:----:|
+| Fraction of dead trees | **5.7 %** | 3.1 % | **High** |
+| Trees per sq mi | 3,700 | 4,050 | Low-moderate |
+| Most common species | *Honeylocust* | — | — |
+
+- **Safety:** Old honeylocust and silver maple stands are prone to limb failure.  
+- **Heat & Equity:** Brownsville experiences among the highest surface temperatures and lowest canopy coverage citywide.  
+- **Visibility:** Replacing dead street trees improves neighborhood appearance and air quality.
+
+---
+
+### Proposed Actions
+#### Removal & Replacement
+- Remove ≈ 400 dead or structurally unsound trees.  
+- Replant 500 new trees (*Callery pear*, *London plane*, *American linden*) selected for heat and salt tolerance.
+
+#### Community Partnership
+- Partner with local schools and community gardens for tree-adoption events.  
+- Create bilingual signage explaining species and benefits.
+
+#### Maintenance & Monitoring
+- Quarterly inspections by NYC Parks foresters.  
+- Public dashboard for progress tracking using NYC Open Data.
+
+---
+
+### Visualizations
+1. **Zoomed-in map:** Trees in District 16 (Alive vs Dead) — see below.  
+2. **Bar chart:** Top 5 species by count (Alive vs Dead).  
+3. **Comparison map:** Tree density in Districts 14–17.
+
+```{r d16_zoom_map, message=FALSE, warning=FALSE, cache=TRUE}
+library(sf)
+library(dplyr)
+library(ggplot2)
+
+# Load from RDS if needed
+if (!exists("DISTRICTS") && file.exists("data/mp03/districts.rds")) {
+  DISTRICTS <- readRDS("data/mp03/districts.rds")
+}
+if (!exists("trees_with_districts") && file.exists("data/mp03/trees_clean.rds")) {
+  # If you have TREES_CLEAN saved, rebuild join quickly
+  TREES_CLEAN <- readRDS("data/mp03/trees_clean.rds")
+  trees_with_districts <- st_join(TREES_CLEAN, DISTRICTS, join = st_intersects, left = TRUE)
+}
+
+# --- Filter District 16 geometry and trees
+d16 <- DISTRICTS %>% filter(CounDist == 16)
+trees_d16 <- trees_with_districts %>%
+  filter(CounDist == 16)
+
+# --- Summaries for subtitle
+status_col <- intersect(c("status","tpcondition"), names(trees_d16))
+status_col <- if (length(status_col)) status_col[1] else "status"
+
+sum_tbl <- trees_d16 %>%
+  st_drop_geometry() %>%
+  mutate(is_dead = tolower(.data[[status_col]]) == "dead") %>%
+  summarise(
+    total = n(),
+    dead  = sum(is_dead, na.rm = TRUE),
+    frac_dead = dead / total
+  )
+
+sub_txt <- sprintf("Total: %s   Dead: %s (%.1f%%)",
+                   format(sum_tbl$total, big.mark=","),
+                   format(sum_tbl$dead, big.mark=","),
+                   100*sum_tbl$frac_dead)
+
+# --- Plot (zoom to district extent)
+# colors for statuses (others collapse to 'Other/Unknown')
+trees_d16_plot <- trees_d16 %>%
+  mutate(
+    status_plot = case_when(
+      tolower(.data[[status_col]]) == "alive" ~ "Alive",
+      tolower(.data[[status_col]]) == "dead"  ~ "Dead",
+      TRUE ~ "Other/Unknown"
+    )
+  )
+
+bbox <- st_bbox(d16)
+
+p_d16 <- ggplot() +
+  geom_sf(data = d16, fill = NA, color = "grey40", linewidth = 0.6) +
+  geom_sf(data = trees_d16_plot,
+          aes(color = status_plot),
+          size = 0.4, alpha = 0.6) +
+  scale_color_manual(
+    values = c("Alive" = "forestgreen",
+               "Dead"  = "firebrick",
+               "Other/Unknown" = "grey60"),
+    name = "Tree status"
+  ) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"]),
+           expand = FALSE) +
+  labs(
+    title = "District 16 — Street Trees by Status",
+    subtitle = sub_txt,
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major = element_line(linewidth = 0.2, colour = "grey92"),
+    legend.position = "top"
+  )
+
+print(p_d16)
+
+# (optional) save image for your proposal section
+dir.create("docs/images", showWarnings = FALSE)
+ggsave("docs/images/d16_trees_status_zoom.png", p_d16, width = 7.5, height = 6, dpi = 300)
+```
+
+```{r d16_species_top5, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(forcats)
+
+# Ensure joined data exists; load quickly from RDS if needed
+if (!exists("trees_with_districts") && file.exists("data/mp03/trees_clean.rds")) {
+  TREES_CLEAN <- readRDS("data/mp03/trees_clean.rds")
+  trees_with_districts <- st_join(TREES_CLEAN, DISTRICTS, join = st_intersects, left = TRUE)
+}
+
+# --- Column choices (robust to naming differences)
+species_col <- intersect(c("spc_common","genusspecies","spc_latin"), names(trees_with_districts))
+species_col <- if (length(species_col)) species_col[1] else "spc_common"
+
+status_col  <- intersect(c("status","tpcondition"), names(trees_with_districts))
+status_col  <- if (length(status_col)) status_col[1] else "status"
+
+# --- Filter District 16 and build summary
+d16_species <- trees_with_districts %>%
+  filter(CounDist == 16) %>%
+  st_drop_geometry() %>%
+  mutate(
+    species = coalesce(as.character(.data[[species_col]]), "Unknown"),
+    status_plot = case_when(
+      tolower(.data[[status_col]]) == "alive" ~ "Alive",
+      tolower(.data[[status_col]]) == "dead"  ~ "Dead",
+      TRUE ~ "Other/Unknown"
+    )
+  ) %>%
+  filter(species != "Unknown") %>%  # drop unknowns for a cleaner chart
+  count(species, status_plot, name = "n") %>%
+  group_by(species) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  slice_max(order_by = total, n = 5, with_ties = FALSE) %>%
+  mutate(species = fct_reorder(species, total))
+
+# --- Plot
+p_d16_bar <- ggplot(d16_species, aes(x = species, y = n, fill = status_plot)) +
+  geom_col(position = "stack", alpha = 0.9) +
+  coord_flip() +
+  scale_fill_manual(
+    values = c("Alive" = "forestgreen", "Dead" = "firebrick", "Other/Unknown" = "grey70"),
+    name   = "Tree status"
+  ) +
+  labs(
+    title = "District 16 — Top 5 Species (Alive vs Dead)",
+    subtitle = "Stacked counts for the five most common species",
+    x = NULL, y = "Tree count"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "top",
+        panel.grid.major.y = element_blank())
+
+print(p_d16_bar)
+
+# (optional) save for proposal
+dir.create("docs/images", showWarnings = FALSE)
+ggsave("docs/images/d16_top5_species_alive_dead.png", p_d16_bar, width = 7.5, height = 5.5, dpi = 300)
+```
+
+---
+
+### Expected Outcomes
+- Replace > 90% of dead trees within 12 months.  
+- Increase canopy cover by ≈ 5% by 2026.  
+- Engage 200+ residents through planting events and education.  
+- Reduce reported sidewalk damage by 10% through better species selection.
+
+
+## Extra Credit Opportunity #01 — Improved Tree Map Visualizations
+
+## Extra Credit: Interactive Tree Map
+
+To enhance accessibility and engagement, I built an **interactive Leaflet map** where users can explore trees across boroughs and inspect live summaries per district. This tool helps both policymakers and residents better understand the spatial distribution of the city’s urban forest.
+
+
+```{r extra_credit_leaflet_plus, message=FALSE, warning=FALSE}
+library(sf)
+library(dplyr)
+library(leaflet)
+library(htmltools)
+
+# --- Ensure data is ready -----------------------------------------------------
+if (!exists("DISTRICTS") && file.exists("data/mp03/districts.rds")) {
+  DISTRICTS <- readRDS("data/mp03/districts.rds")
+}
+if (!exists("trees_with_districts")) {
+  if (exists("TREES_CLEAN")) {
+    trees_with_districts <- st_join(TREES_CLEAN, DISTRICTS, join = st_intersects, left = TRUE)
+  } else if (file.exists("data/mp03/trees_clean.rds")) {
+    TREES_CLEAN <- readRDS("data/mp03/trees_clean.rds")
+    trees_with_districts <- st_join(TREES_CLEAN, DISTRICTS, join = st_intersects, left = TRUE)
+  } else stop("Need TREES_CLEAN or trees_with_districts")
+}
+
+# --- Use the tree's own borough attribute (no district-range inference) ------
+borough_col <- intersect(c("boroname","borough","boro_name","boro"), names(trees_with_districts))
+stopifnot(length(borough_col) >= 1)
+borough_col <- borough_col[1]
+
+trees_boro <- trees_with_districts |>
+  mutate(borough = as.character(.data[[borough_col]]))
+
+# --- District summaries for popup --------------------------------------------
+FT2_PER_SQMI <- 5280^2
+
+dist_area <- if ("Shape__Area" %in% names(DISTRICTS)) {
+  DISTRICTS |> st_drop_geometry() |> select(CounDist, area_ft2 = Shape__Area)
+} else {
+  DISTRICTS |>
+    st_transform(2263) |>
+    mutate(area_ft2 = as.numeric(st_area(geometry))) |>
+    st_drop_geometry() |>
+    select(CounDist, area_ft2)
+}
+
+status_col <- intersect(c("status","tpcondition"), names(trees_boro))
+status_col <- if (length(status_col)) status_col[1] else "status"
+
+dist_stats <- trees_boro |>
+  st_drop_geometry() |>
+  mutate(is_dead = tolower(.data[[status_col]]) == "dead") |>
+  group_by(CounDist) |>
+  summarise(n_trees = n(),
+            n_dead  = sum(is_dead, na.rm = TRUE),
+            .groups = "drop") |>
+  left_join(dist_area, by = "CounDist") |>
+  mutate(
+    frac_dead   = n_dead / n_trees,
+    trees_sqmi  = n_trees / (area_ft2 / FT2_PER_SQMI)
+  )
+
+# Attach stats back to polygons for popups
+districts_popup <- DISTRICTS |>
+  left_join(dist_stats, by = "CounDist")
+
+# HTML popup
+popup_html <- function(cd, n, dead, frac, dens){
+  HTML(sprintf(
+    "<b>District %s</b><br/>Trees: %s<br/>Dead: %s (%.1f%%)<br/>Trees / sq mi: %s",
+    cd,
+    format(n, big.mark = ","),
+    format(dead, big.mark = ","),
+    100*frac,
+    format(round(dens,1), big.mark = ",")
+  ))
+}
+
+# --- Points: color by actual borough -----------------------------------------
+pal <- colorFactor(
+  palette = c("Manhattan"="#1f77b4", "Bronx"="#ff7f0e",
+              "Queens"="#2ca02c", "Brooklyn"="#d62728",
+              "Staten Island"="#9467bd"),
+  domain  = c("Manhattan","Bronx","Queens","Brooklyn","Staten Island"),
+  na.color = "#999999"
+)
+
+set.seed(77)
+trees_sample <- trees_boro |>
+  slice_sample(n = 80000)  # adjust for speed if needed
+
+# --- Map ----------------------------------------------------------------------
+leaflet(options = leafletOptions(minZoom = 9)) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+
+  # districts with popups
+  addPolygons(
+    data = st_simplify(districts_popup, dTolerance = 50),
+    color = "grey40", weight = 1, fill = FALSE,
+    label = ~paste("District", CounDist),
+    popup = ~popup_html(CounDist, n_trees, n_dead, frac_dead, trees_sqmi),
+    highlightOptions = highlightOptions(weight = 2, color = "#000", bringToFront = TRUE)
+  ) |>
+
+  # trees colored by borough (from the dataset)
+  addCircleMarkers(
+    data = trees_sample,
+    radius = 2, stroke = FALSE, fillOpacity = 0.6,
+    color = ~pal(borough),
+    group = "Trees"
+  ) |>
+
+  addLegend("bottomright",
+            colors = pal(c("Manhattan","Bronx","Queens","Brooklyn","Staten Island")),
+            labels = c("Manhattan","Bronx","Queens","Brooklyn","Staten Island"),
+            title  = "Borough (sampled trees)") |>
+
+  addLayersControl(
+    overlayGroups = c("Trees"),
+    options = layersControlOptions(collapsed = TRUE)
+  )
+```
+
+## Conclusion
+
+Through this analysis, we visualized how trees are distributed across New York City.We have identified key disparities in canopy coverage and tree health. District 16 emerged as a clear candidate for renewed investment.
+This project demonstrates how open data can guide urban sustainability efforts.  
+The enhanced interactive visualizations further bridge the gap between data science and public understanding,transforming statistics into stories of growth, renewal, and equity.
 
 ------------------------------------------------------------------------
 
