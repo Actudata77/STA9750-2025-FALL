@@ -19,15 +19,13 @@ execute:
   message: false
 ---
 ![](images/tree.jpg){width="100%" height="auto" fig-align="center"}
-
-## Introduction
+# Introduction
 
 In the biggest city in America, trees are more than urban decoration, they are vital infrastructure for the air quality, shade, and community wellbeing. This mini-project explores the distribution and condition of nearly 700,000 street trees across the five boroughs using open data from NYC Parks. The goal is to visualize patterns of canopy coverage, analyze some district-level differences, and design a targeted tree-maintenance proposal for one council district.
 
 ## Data Acquisition
 
 To build a reliable dataset for analysis, I began by downloading the official **City Council District boundaries** and the **NYC Street Tree Census** data using programmatic API calls.
-
 
 ```{r}
 # Cache-first load 
