@@ -48,7 +48,7 @@ if (file.exists("data/mp03/trees_clean.rds")) {
 
 ```
 
-
+### Task 1: Download NYC City Council District Boundaries
 
 ```{r}
 
@@ -118,6 +118,7 @@ get_council_districts <- function() {
 }
 ```
 
+### Task 2: Download NYC Tree Points from API
 
 ```{r}
 # ============================================================================
@@ -285,7 +286,6 @@ invisible({
 With the data loaded, the next step was to visualize the spatial distribution of trees. Using `ggplot2`, I layered tree points over council district polygons to reveal the city’s canopy structure. Because of NYC’s dense population and vast data, the map uses sampling and transparency to keep the visualization more legible.
 
 ### Task 3: Plot All Tree Points
-
 
 ```{r task3_plot_all_trees, message=FALSE, warning=FALSE}
 # --- Task 3: Plot All Tree Points -------------------------------------------
@@ -1028,7 +1028,7 @@ ggsave("docs/images/d16_top5_species_alive_dead.png", p_d16_bar, width = 7.5, he
 
 ## Extra Credit Opportunity #01 — Improved Tree Map Visualizations
 
-## Extra Credit: Interactive Tree Map
+## Interactive Tree Map
 
 To enhance accessibility and engagement, I built an **interactive Leaflet map** where users can explore trees across boroughs and inspect live summaries per district. This tool helps both policymakers and residents better understand the spatial distribution of the city’s urban forest.
 
