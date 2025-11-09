@@ -19,6 +19,7 @@ execute:
   message: false
 ---
 ![](images/tree.jpg){width="100%" height="auto" fig-align="center"}
+
 # Introduction
 
 In the biggest city in America, trees are more than urban decoration, they are vital infrastructure for the air quality, shade, and community wellbeing. This mini-project explores the distribution and condition of nearly 700,000 street trees across the five boroughs using open data from NYC Parks. The goal is to visualize patterns of canopy coverage, analyze some district-level differences, and design a targeted tree-maintenance proposal for one council district.
@@ -438,63 +439,100 @@ if (districts_matched < 30) {
 
 **1. Which council-district has the most trees?**
 
-```{r}
-# Q1: Which council district has the most trees?
-q1_answer <- trees_with_districts |>
-  st_drop_geometry() |>
-  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
-  filter(!is.na(CounDist)) |>
-  count(CounDist, name = "n_trees", sort = TRUE) |>
-  slice_max(n_trees, n = 1)
-
-```
-District `r highlight(q1_answer$CounDist)` has the most trees with `r highlight(format(q1_answer$n_trees, big.mark = ","))` trees.
-
 Show top 10 districts by tree count for reference:
 
 ```{r}
-# Top 10 Council Districts by Tree Count
+library(sf)
 library(dplyr)
 library(DT)
 library(scales)
 
-# Summarize tree counts
-nyc_trees <- trees_with_districts |>
-  st_drop_geometry() |>
-  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
-  filter(!is.na(CounDist)) |>
-  count(CounDist, sort = TRUE) |>
-  head(10) |>
-  rename(
-    `Council District` = CounDist,
-    `Number of Trees`  = n
-  ) |>
-  mutate(`Number of Trees` = comma(`Number of Trees`, accuracy = 1))
+# helpers (your versions fine too)
 
-# Display nicely formatted interactive table with row numbers
+highlight <- function(x) paste0('', x, "")
+fmt_int <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+fmt_num <- function(x, digits = 1) format(round(as.numeric(x), digits),
+nsmall = digits, big.mark = ",",
+trim = TRUE, scientific = FALSE)
+
+if (!exists("q1_answer")) {
+q1_answer <- trees_with_districts |>
+sf::st_drop_geometry() |>
+mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+filter(!is.na(CounDist)) |>
+count(CounDist, name = "n_trees", sort = TRUE) |>
+slice_head(n = 1)
+}
+
+# --- counts for all districts (keep numeric n for later) ---
+
+q1_counts <- trees_with_districts |>
+st_drop_geometry() |>
+mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+filter(!is.na(CounDist)) |>
+count(CounDist, sort = TRUE)
+
+# winner row (available for later chunks too)
+
+q1_answer <- slice_head(q1_counts, n = 1)
+
+# --- pretty table (top 10) ---
+
+nyc_trees <- q1_counts |>
+slice_head(n = 10) |>
+rename(`Council District` = CounDist,
+`Number of Trees`  = n) |>
+mutate(`Number of Trees` = comma(`Number of Trees`, accuracy = 1))
+
 datatable(
-  nyc_trees,
-  rownames = TRUE,  # ✅ show row numbers
-  options = list(
-    dom = 't',
-    pageLength = 10,
-    columnDefs = list(list(className = 'dt-center', targets = 0:2))  # center all cols
-  ),
-  caption = htmltools::tags$caption(
-    style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
-    'Table 1: Top 10 NYC Council Districts by Tree Count'
-  )
+nyc_trees,
+rownames = TRUE,
+options = list(
+dom = 't',
+pageLength = 10,
+columnDefs = list(list(className = 'dt-center', targets = 0:2))
+),
+caption = htmltools::tags$caption(
+style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
+'Table 1: Top 10 NYC Council Districts by Tree Count'
 )
+)
+
+# --- highlighted key finding line under the table ---
+
+cat(sprintf(
+"District %s has the most trees — %s trees.\n",
+highlight(q1_answer$CounDist),
+highlight(fmt_int(q1_answer$n))
+))
 
 ```
 
+District `r highlight(q1_answer$CounDist)` has the most trees — `r highlight(fmt_int(q1_answer$n_trees))` trees.
+
+**2. Question 2: Which district has the highest density of trees?**
 
 ```{r}
-# Small format helpers
-fmt_int <- function(x) format(x, big.mark = ",", trim = TRUE)
-fmt_num <- function(x, digits = 2) format(round(x, digits), nsmall = digits, trim = TRUE)
+# -- Q2: Which district has the highest density of trees? ---------------------
+library(dplyr)
+library(sf)
+library(DT)
+library(scales)
 
-# get district areas in ft^2 (prefer provided Shape__Area; otherwise compute)
+# Helper: borough labels
+borough_map <- function(d){
+  d <- as.integer(d)
+  dplyr::case_when(
+    d >=  1 & d <= 10 ~ "Manhattan",
+    d >= 11 & d <= 18 ~ "Bronx",
+    d >= 19 & d <= 32 ~ "Queens",
+    d >= 33 & d <= 48 ~ "Brooklyn",
+    d >= 49 & d <= 51 ~ "Staten Island",
+    TRUE ~ NA_character_
+  )
+}
+
+# Helper: district areas (ft^2)
 get_district_area_ft2 <- function(districts){
   if ("Shape__Area" %in% names(districts)) {
     districts |>
@@ -509,84 +547,141 @@ get_district_area_ft2 <- function(districts){
   }
 }
 
-```
+# Rebuild q2_table/q2_answer if missing
+if (!exists("q2_table") || !exists("q2_answer")) {
+  FT2_PER_SQMI <- 5280^2
+  FT2_PER_ACRE <- 43560
 
-**2. Question 2: Which district has the highest density of trees?**
+  dist_area <- get_district_area_ft2(DISTRICTS)
 
-```{r}
-# constants for friendly units
-FT2_PER_SQMI <- 5280^2
-FT2_PER_ACRE <- 43560
+  q2_table <- trees_with_districts |>
+    st_drop_geometry() |>
+    mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+    filter(!is.na(CounDist)) |>
+    count(CounDist, name = "n_trees") |>
+    left_join(dist_area, by = "CounDist") |>
+    mutate(
+      trees_per_sqmi = n_trees / (area_ft2 / FT2_PER_SQMI),
+      trees_per_acre = n_trees / (area_ft2 / FT2_PER_ACRE)
+    ) |>
+    arrange(desc(trees_per_sqmi))
 
-dist_area <- get_district_area_ft2(DISTRICTS)
-
-q2_table <- trees_with_districts |>
-  st_drop_geometry() |>
-  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
-  filter(!is.na(CounDist)) |>
-  count(CounDist, name = "n_trees") |>
-  left_join(dist_area, by = "CounDist") |>
-  mutate(
-    trees_per_sqmi = n_trees / (area_ft2 / FT2_PER_SQMI),
-    trees_per_acre = n_trees / (area_ft2 / FT2_PER_ACRE)
-  ) |>
-  arrange(desc(trees_per_sqmi))
-
-q2_answer <- slice_head(q2_table, n = 1)
-
-
-```
-
-District `r highlight(q2_answer$CounDist)` has the highest tree density — `r highlight(fmt_num(q2_answer$trees_per_sqmi, 1))` trees/sq mi (`r highlight(fmt_num(q2_answer$trees_per_acre, 2))` trees/acre).
-
-**3. Question 3: Which district has the highest fraction of dead trees?**
-
-```{r}
-highlight <- function(x) sprintf("**%s**", x)
-
-fmt_int <- function(x) {
-  format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
+  q2_answer <- slice_head(q2_table, n = 1)
 }
 
-fmt_num <- function(x, digits = 1) {
-  format(round(as.numeric(x), digits),
-         nsmall = digits, big.mark = ",", trim = TRUE, scientific = FALSE)
-}
-
-
-
-# choose a status/condition column that indicates "Dead"
-status_col <- intersect(c("status", "tpcondition"), names(trees_with_districts))
-status_col <- if (length(status_col)) status_col[1] else "status"  # default
-
-q3_table <- trees_with_districts |>
-  st_drop_geometry() |>
+# Build the top-5 table for display
+q2_top5 <- q2_table %>%
+  slice_max(order_by = trees_per_sqmi, n = 5, with_ties = FALSE) %>%
   mutate(
-    CounDist = suppressWarnings(as.integer(CounDist)),
-    is_dead = case_when(
-      # normalize to lower for robustness
-      tolower(.data[[status_col]]) %in% c("dead") ~ TRUE,
-      TRUE ~ FALSE
-    )
-  ) |>
-  filter(!is.na(CounDist)) |>
-  group_by(CounDist) |>
-  summarise(
-    total_trees = n(),
-    dead_trees  = sum(is_dead, na.rm = TRUE),
-    frac_dead   = dead_trees / total_trees,
-    .groups = "drop"
-  ) |>
-  arrange(desc(frac_dead), desc(dead_trees))
+    `Council District` = as.integer(CounDist),
+    Borough            = borough_map(`Council District`),
+    `Trees / sq mi`    = comma(trees_per_sqmi,  accuracy = 0.1),
+    `Trees / acre`     = comma(trees_per_acre,  accuracy = 0.01)
+  ) %>%
+  select(`Council District`, Borough, `Trees / sq mi`, `Trees / acre`)
 
-q3_answer <- slice_head(q3_table, n = 1)
+dt <- datatable(
+  q2_top5,
+  rownames = TRUE,
+  options = list(
+    dom = 't',
+    pageLength = 5,
+    columnDefs = list(list(className = 'dt-center', targets = 0:3))
+  ),
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
+    'Table 2: Top 5 NYC Council Districts by Tree Density'
+  )
+)
+
+# Bold the winning district row if present
+dt <- formatStyle(
+  dt, 'Council District',
+  target = 'row',
+  fontWeight = styleEqual(q2_answer$CounDist, 'bold')
+)
+
+dt
 
 ```
-District `r highlight(q3_answer$CounDist)` has the highest fraction of dead trees — `r highlight(fmt_num(100 * q3_answer$frac_dead, 2))`% (`r highlight(fmt_int(q3_answer$dead_trees))` of `r highlight(fmt_int(q3_answer$total_trees))`).
 
+**3: Which district has the highest fraction of dead trees?**
+
+```{r}
+# -- Q3: Top 5 districts by dead-tree fraction --------------------------------
+library(dplyr)
+library(sf)
+library(DT)
+library(scales)
+
+# Rebuild q3_table / q3_answer if missing
+if (!exists("q3_table") || !exists("q3_answer")) {
+  # pick a status/condition column that indicates "Dead"
+  status_col <- intersect(c("status", "tpcondition"), names(trees_with_districts))
+  status_col <- if (length(status_col)) status_col[1] else "status"
+
+  q3_table <- trees_with_districts |>
+    st_drop_geometry() |>
+    mutate(
+      CounDist = suppressWarnings(as.integer(CounDist)),
+      is_dead  = case_when(
+        tolower(.data[[status_col]]) %in% c("dead") ~ TRUE,
+        TRUE ~ FALSE
+      )
+    ) |>
+    filter(!is.na(CounDist)) |>
+    group_by(CounDist) |>
+    summarise(
+      total_trees = n(),
+      dead_trees  = sum(is_dead, na.rm = TRUE),
+      frac_dead   = dead_trees / total_trees,
+      .groups = "drop"
+    ) |>
+    arrange(desc(frac_dead), desc(dead_trees))
+
+  q3_answer <- slice_max(q3_table, order_by = frac_dead, n = 1, with_ties = FALSE)
+}
+
+# Build the display table
+q3_top5 <- q3_table %>%
+  slice_max(order_by = frac_dead, n = 5, with_ties = FALSE) %>%
+  mutate(
+    `Council District` = as.integer(CounDist),
+    `Dead %`           = paste0(comma(100*frac_dead, accuracy = 0.01), "%"),
+    `Dead Trees`       = comma(dead_trees,  accuracy = 1),
+    `Total Trees`      = comma(total_trees, accuracy = 1)
+  ) %>%
+  select(`Council District`, `Dead %`, `Dead Trees`, `Total Trees`)
+
+dt <- datatable(
+  q3_top5,
+  rownames = TRUE,
+  options = list(
+    dom = 't',
+    pageLength = 5,
+    columnDefs = list(list(className = 'dt-center', targets = 0:3))
+  ),
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
+    'Table 3: Top 5 NYC Council Districts by Dead-Tree Fraction'
+  )
+)
+
+# Bold the winning district
+formatStyle(
+  dt, 'Council District',
+  target = 'row',
+  fontWeight = styleEqual(q3_answer$CounDist, 'bold')
+)
+
+```
+
+District `r highlight(q3_answer$CounDist[[1]])` has the highest fraction of dead trees —
+`r highlight(fmt_num(100 * as.numeric(q3_answer$frac_dead[[1]]), 2))`%
+(`r highlight(fmt_int(q3_answer$dead_trees[[1]]))` of
+`r highlight(fmt_int(q3_answer$total_trees[[1]]))` trees).
 
 **4. Question 4: What is the most common tree species in Manhattan?**
-
 
 ```{r}
 
@@ -630,96 +725,99 @@ q4_species <- if (length(species_cols_q4)) as.character(q4_answer[[species_cols_
 The most common tree species in Manhattan is `r highlight(q4_species)` with `r highlight(fmt_int(q4_answer$n))` trees.
 
 **5. Question 5: Which tree is closest to Baruch College's campus?**
+
+
+
 ```{r}
-# --- Task 5: Which tree is closest to Baruch? --------------------------------
+# Self-contained Task 5 map (rebuilds anything missing)
 library(sf)
 library(dplyr)
-library(ggplot2)
+library(leaflet)
+library(scales)
 
+stopifnot(exists("trees_with_districts"), exists("DISTRICTS"))
 
-highlight <- function(x) sprintf("**%s**", x)
-fmt_int   <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
-fmt_num   <- function(x, digits = 1) format(round(as.numeric(x), digits),
-                                            nsmall = digits, big.mark = ",",
-                                            trim = TRUE, scientific = FALSE)
-
-
-# Requires the join from Task 4
-stopifnot(exists("trees_with_districts"))
-
-# Baruch point (WGS84)
-if (!exists("baruch_wgs84"))
+# 1) Baruch point
+if (!exists("baruch_wgs84")) {
   baruch_wgs84 <- st_sfc(st_point(c(-73.9832, 40.7406)), crs = 4326)
+}
 
-# Work in feet to measure
-trees_sp  <- st_transform(trees_with_districts, 2263)   # EPSG:2263 (US ft)
-baruch_sp <- st_transform(baruch_wgs84, 2263)
+# 2) Find closest tree to Baruch (rebuild if needed)
+if (!exists("closest_tree_wgs") || !exists("dist_lab_ft") || !exists("species_label")) {
+  trees_sp  <- st_transform(trees_with_districts, 2263)   # US feet
+  baruch_sp <- st_transform(baruch_wgs84, 2263)
 
-# Distances from every tree to Baruch (vector)
-dist_ft <- as.numeric(st_distance(st_geometry(trees_sp), baruch_sp))
+  dist_ft <- as.numeric(st_distance(st_geometry(trees_sp), baruch_sp))
+  idx_closest <- which.min(dist_ft)
 
-# Index of the closest tree
-idx_closest      <- which.min(dist_ft)
-closest_tree_sp  <- trees_sp[idx_closest, ]
-closest_tree_wgs <- st_transform(closest_tree_sp, 4326)
+  closest_tree_sp  <- trees_sp[idx_closest, ]
+  closest_tree_wgs <- st_transform(closest_tree_sp, 4326)
 
-# Nice labels
-dist_lab_ft <- round(dist_ft[idx_closest], 1)
-dist_lab_m  <- round(dist_lab_ft * 0.3048, 1)
+  dist_lab_ft <- round(dist_ft[idx_closest], 1)
+  dist_lab_m  <- round(dist_lab_ft * 0.3048, 1)
 
-# Pick first available species column
-species_cols <- intersect(c("spc_common","genusspecies","spc_latin"),
-                          names(trees_with_districts))
-species_label <- if (length(species_cols))
-  as.character(trees_with_districts[[species_cols[1]]][idx_closest]) else "Unknown species"
+  species_cols  <- intersect(c("spc_common","genusspecies","spc_latin"),
+                             names(trees_with_districts))
+  species_label <- if (length(species_cols))
+    as.character(st_drop_geometry(trees_with_districts)[[species_cols[1]]][idx_closest])
+  else "Unknown species"
 
-# ---------- Build q5_answer for the summary chunk ----------
-q5_answer <- trees_with_districts[idx_closest, ] |>
-  st_drop_geometry() |>
-  mutate(
-    distance_ft = dist_lab_ft,
-    distance_m  = dist_lab_m,
-    species     = species_label
-  )
-# -----------------------------------------------------------
+  # Also keep a one-row tibble for inline text later
+  q5_answer <- st_drop_geometry(trees_with_districts[idx_closest, ]) |>
+    mutate(distance_ft = dist_lab_ft, distance_m = dist_lab_m, species = species_label)
+}
 
-# Local map (zoom around Baruch)
+# 3) Build local context (buffer & nearby trees)
 buffer_ft <- 800
-buf_sp    <- st_buffer(baruch_sp, buffer_ft)
-buf_wgs   <- st_transform(buf_sp, 4326)
+buf_wgs   <- st_transform(st_buffer(st_transform(baruch_wgs84, 2263), buffer_ft), 4326)
 
-trees_wgs <- st_transform(trees_sp, 4326)
-in_buf    <- st_within(trees_wgs, buf_wgs, sparse = FALSE)[,1]
+trees_wgs <- st_transform(trees_with_districts, 4326)
+in_buf    <- st_within(trees_wgs, buf_wgs, sparse = FALSE)[, 1]
 trees_local <- trees_wgs[in_buf, ]
-districts_local <- suppressWarnings(st_intersection(DISTRICTS, buf_wgs))
 
-p_baruch <- ggplot() +
-  geom_sf(data = buf_wgs, fill = NA, color = "firebrick", linewidth = 0.6, linetype = 2) +
-  geom_sf(data = districts_local, fill = NA, color = "grey70", linewidth = 0.3) +
-  geom_sf(data = trees_local, color = "grey60", alpha = 0.35, size = 0.7) +
-  geom_sf(data = closest_tree_wgs, color = "white", size = 4.2, alpha = 0.9) +
-  geom_sf(data = closest_tree_wgs, color = "darkgreen", size = 2.2) +
-  geom_sf(data = baruch_wgs84, color = "black", size = 1.5, shape = 4, stroke = 0.7) +
-  coord_sf(xlim = st_bbox(buf_wgs)[c("xmin","xmax")],
-           ylim = st_bbox(buf_wgs)[c("ymin","ymax")], expand = FALSE) +
-  labs(
-    title = "Closest Tree to Baruch College (Zoomed View)",
-    subtitle = paste0(species_label, " — ",
-                      format(dist_lab_ft, big.mark=","), " ft (", dist_lab_m, " m)"),
-    x = NULL, y = NULL
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(panel.grid.major = element_line(linewidth = 0.2, colour = "grey92"))
+# 4) Prepare points for leaflet
+baruch_pt  <- st_transform(baruch_wgs84, 4326)
+closest_pt <- st_transform(closest_tree_wgs, 4326)
 
-print(p_baruch)
-dir.create("docs/images", showWarnings = FALSE)
-ggsave("docs/images/closest_tree_baruch_zoom.png", p_baruch, width = 7, height = 6, dpi = 300)
+# 5) Leaflet map
+leaflet() |>
+  addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+  addScaleBar(position = "bottomleft") |>
+
+  # nearby trees
+  addCircleMarkers(data = trees_local, radius = 2, color = "#666",
+                   fillOpacity = 0.35, group = "Nearby trees") |>
+
+  # 800 ft buffer ring
+  addPolylines(data = st_cast(st_boundary(buf_wgs), "MULTILINESTRING"),
+               color = "firebrick", weight = 2, opacity = 0.9, group = "800 ft buffer") |>
+
+  # Baruch label
+  addMarkers(data = baruch_pt, label = "Baruch College (55 Lexington Ave)",
+             popup = "Baruch College (55 Lexington Ave)", group = "Baruch",
+             labelOptions = labelOptions(noHide = TRUE, direction = "top",
+                                         textsize = "12px",
+                                         style = list("font-weight" = "bold"))) |>
+
+  # Closest tree
+  addCircleMarkers(data = closest_pt, radius = 8, color = "darkgreen",
+                   fillColor = "darkgreen", fillOpacity = 1, label = "Closest tree",
+                   popup = sprintf("<b>Closest tree</b><br/>%s<br/>%s ft (%.1f m)",
+                                   species_label, scales::comma(dist_lab_ft, 1), dist_lab_m),
+                   group = "Closest tree") |>
+
+  addLayersControl(
+    baseGroups    = c("Positron"),
+    overlayGroups = c("800 ft buffer", "Nearby trees", "Closest tree", "Baruch"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) |>
+  setView(lng = -73.9832, lat = 40.7406, zoom = 17)
+
 ```
 
-The closest tree to Baruch College is a `r highlight(q5_answer$species)` located
-`r highlight(fmt_num(q5_answer$distance_ft, 1))` ft
+The closest tree to Baruch College is a `r highlight(q5_answer$species)` located 
+`r highlight(fmt_num(q5_answer$distance_ft, 1))` ft 
 (`r highlight(fmt_num(q5_answer$distance_ft * 0.3048, 1))` m) away.
-
 
 ## Government Project Design
 
@@ -728,7 +826,7 @@ The following section translates analysis into action. Focusing on **District 16
 🌳 **District 16: Reviving the Canopy in Central Brooklyn**
 
 ### Project Overview
-District 16—covering parts of **Bedford-Stuyvesant, Ocean Hill, and Brownsville**—shows a noticeably high fraction of *dead or unhealthy trees* according to the 2024 NYC Street Tree Census. Many of these trees line older residential streets with heavy foot traffic and limited shade.  
+District 16 covers parts of **Bedford-Stuyvesant, Ocean Hill, and Brownsville**, and it shows a noticeably high fraction of *dead or unhealthy trees* according to the 2024 NYC Street Tree Census. Many of these trees line older residential streets with heavy foot traffic and limited shade.  
 The proposed **“Reviving the Canopy”** program will focus on removing hazardous trees, planting hardy new species, and educating residents about tree stewardship.
 
 ### Quantitative Scope
@@ -755,7 +853,7 @@ The proposed **“Reviving the Canopy”** program will focus on removing hazard
 
 ### Proposed Actions
 #### Removal & Replacement
-- Remove ≈ 400 dead or structurally unsound trees.  
+- Remove nearly 400 dead or structurally unsound trees.  
 - Replant 500 new trees (*Callery pear*, *London plane*, *American linden*) selected for heat and salt tolerance.
 
 #### Community Partnership
