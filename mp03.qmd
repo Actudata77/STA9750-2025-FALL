@@ -442,73 +442,56 @@ if (districts_matched < 30) {
 Show top 10 districts by tree count for reference:
 
 ```{r}
+
 library(sf)
 library(dplyr)
 library(DT)
 library(scales)
 
-# helpers (your versions fine too)
+# Red + bold
+highlight <- function(x) paste0('<span style="color:#e41a1c;"><b>', x, "</b></span>")
 
-highlight <- function(x) paste0('', x, "")
+# Number helpers used in inlines
 fmt_int <- function(x) format(round(as.numeric(x)), big.mark = ",", trim = TRUE, scientific = FALSE)
 fmt_num <- function(x, digits = 1) format(round(as.numeric(x), digits),
-nsmall = digits, big.mark = ",",
-trim = TRUE, scientific = FALSE)
+                                         nsmall = digits, big.mark = ",",
+                                         trim = TRUE, scientific = FALSE)
 
-if (!exists("q1_answer")) {
-q1_answer <- trees_with_districts |>
-sf::st_drop_geometry() |>
-mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
-filter(!is.na(CounDist)) |>
-count(CounDist, name = "n_trees", sort = TRUE) |>
-slice_head(n = 1)
-}
-
-# --- counts for all districts (keep numeric n for later) ---
-
+# ----- counts for all districts -----
 q1_counts <- trees_with_districts |>
-st_drop_geometry() |>
-mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
-filter(!is.na(CounDist)) |>
-count(CounDist, sort = TRUE)
+  st_drop_geometry() |>
+  mutate(CounDist = suppressWarnings(as.integer(CounDist))) |>
+  filter(!is.na(CounDist)) |>
+  count(CounDist, name = "n_trees", sort = TRUE)
 
-# winner row (available for later chunks too)
-
+# winner row (keep for inline below)
 q1_answer <- slice_head(q1_counts, n = 1)
 
-# --- pretty table (top 10) ---
-
+# ----- pretty table (top 10) -----
 nyc_trees <- q1_counts |>
-slice_head(n = 10) |>
-rename(`Council District` = CounDist,
-`Number of Trees`  = n) |>
-mutate(`Number of Trees` = comma(`Number of Trees`, accuracy = 1))
+  slice_head(n = 10) |>
+  rename(`Council District` = CounDist,
+         `Number of Trees`  = n_trees) |>
+  mutate(`Number of Trees` = comma(`Number of Trees`, accuracy = 1))
 
 datatable(
-nyc_trees,
-rownames = TRUE,
-options = list(
-dom = 't',
-pageLength = 10,
-columnDefs = list(list(className = 'dt-center', targets = 0:2))
-),
-caption = htmltools::tags$caption(
-style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
-'Table 1: Top 10 NYC Council Districts by Tree Count'
+  nyc_trees,
+  rownames = TRUE,
+  options = list(
+    dom = 't',
+    pageLength = 10,
+    columnDefs = list(list(className = 'dt-center', targets = 0:2))
+  ),
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: left; font-weight: bold; font-size: 1.1em;',
+    'Table 1: Top 10 NYC Council Districts by Tree Count'
+  )
 )
-)
-
-# --- highlighted key finding line under the table ---
-
-cat(sprintf(
-"District %s has the most trees — %s trees.\n",
-highlight(q1_answer$CounDist),
-highlight(fmt_int(q1_answer$n))
-))
-
+# (No cat() here — inline sentence will follow outside the chunk)
 ```
 
-District `r highlight(q1_answer$CounDist)` has the most trees — `r highlight(fmt_int(q1_answer$n_trees))` trees.
+
+District `r highlight(q1_answer$CounDist)` has the most trees, with`r highlight(fmt_int(q1_answer$n_trees))` trees.
 
 **2. Question 2: Which district has the highest density of trees?**
 
@@ -680,7 +663,6 @@ District `r highlight(q3_answer$CounDist[[1]])` has the highest fraction of dead
 `r highlight(fmt_num(100 * as.numeric(q3_answer$frac_dead[[1]]), 2))`%
 (`r highlight(fmt_int(q3_answer$dead_trees[[1]]))` of
 `r highlight(fmt_int(q3_answer$total_trees[[1]]))` trees).
-
 **4. Question 4: What is the most common tree species in Manhattan?**
 
 ```{r}
