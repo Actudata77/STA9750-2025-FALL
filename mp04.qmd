@@ -1064,130 +1064,141 @@ The correlation between monthly CES employment change and the absolute size of C
 ## Fact-Check BLS Revisions
 
 ### Fact-Check #1  
-**“The BLS always underestimates job growth and then revises the numbers upward.”**
+*“The BLS always underestimates job growth and then revises the numbers upward.”*
 
-This claim appears frequently in commentary and media discussions. It implies that BLS initial estimates are *systematically too low*, meaning revisions should consistently be positive. With our full dataset of CES revisions (1979–2025), we test this claim directly.
+This claim appears frequently in commentary and media discussions. It implies that BLS initial
+estimates are **systematically too low**, so revisions should usually be **positive**. With our
+full CES dataset of total nonfarm payroll and revisions (1979–2025), we can test this directly.
 
----
+#### Hypothesis Test
 
-### **Hypothesis Test**
+::: callout-note
+**Question:** Is the *average* revision (final − original) strictly greater than zero?
 
-We test whether the mean revision (final − original) is greater than zero.
+We test the population mean revision:
 
-\[
-H_0: \mu_{\text{revision}} = 0
-\]
+$$
+\begin{aligned}
+H_0 &: \mu_{\text{revision}} = 0 \\
+H_A &: \mu_{\text{revision}} > 0
+\end{aligned}
+$$
 
-\[
-H_A: \mu_{\text{revision}} > 0
-\]
+We use a **one-sample t-test** (Task 4.3), supplemented by a **bootstrap confidence interval**.
+:::
 
-We use a one-sample t-test (Task 4.3), supplemented by a bootstrap confidence interval.
+#### Results
 
----
+::: callout-important
+**Summary of test statistics (Task 4.3)**
 
-### **Results**
-
-- **Observed mean revision:** +11.50 thousand  
-- **95% bootstrap CI:** \([ -6.85,\ +6.88 ]\)  
+- **Observed mean revision:** \( \approx +11.50 \) thousand jobs  
+- **95% bootstrap CI for mean:** \([ -6.85,\ +6.88 ]\) thousand  
 - **t-statistic:** 3.26  
-- **p-value:** 0.001 (statistically significant, but…)  
+- **p-value:** 0.001 (formally “significant”)  
+:::
 
-**Interpretation:**  
-Even though the mean is slightly positive, the confidence interval *crosses zero*, indicating that revisions vary widely and we cannot conclude a persistent upward bias.
+#### Interpretation
+
+::: callout-result
+Even though the point estimate of the mean revision is **slightly positive**, the **confidence
+interval crosses zero**, indicating that revisions vary widely from month to month. We do **not**
+see strong evidence of a persistent upward bias in the level of revisions.
+:::
+
+#### Supporting Evidence (Tasks 2–3)
+
+- **Mean revision:** about **+11.5k**  
+- **Median revision:** roughly **+4k** (many small revisions in both directions)  
+- **Fraction of positive revisions:** about **52.8%** — only slightly above 50%  
+- **Largest upward revision:** **+345k** (pandemic shock; clearly not a routine bias)  
+- **Largest downward revision:** **−537k** (also pandemic-related)  
+- Time-series plots show revisions **jumping above and below zero** with no long-run trend.
+- Decade-by-decade distributions have **medians near zero**, not consistently above zero.
+
+::: callout-warning
+**Bottom line:** The claim that *“BLS always underestimates job growth and then revises up”* is **not supported** by the data. Revisions are noisy, not consistently positive, and no decade shows a clear
+systematic upward bias.
+:::
+
+::: callout-tip
+**PolitiFact-style rating:** 🟧 **Mostly False**
+:::
+
+
 
 ---
 
-### **Supporting Evidence (Tasks 2–3)**
+### Fact-Check #2  
+*“BLS job numbers are manipulated during election years — look how big the revisions are.”*
 
-- **Mean revision:** +11.5k  
-- **Median revision:** +4k  
-- **Fraction of positive revisions:** 52.8% (barely above pure random ~50%)  
-- **Largest upward revision:** +345k (pandemic; outlier)  
-- **Largest downward revision:** –537k (pandemic; outlier)  
-- **Decade medians:** hover near zero  
-- **Revision time-series:** swings above/below zero with no long-run trend  
+This narrative resurfaces every four years. To evaluate it, we compare the **size** of revisions
+in **presidential election years** versus **non-election years**.
 
----
-
-### **Conclusion**
-
-The claim that *“BLS always underestimates job growth”* is **not supported**.
-
-- Revisions are **not consistently positive**.  
-- No decade shows a **systematic upward bias**.  
-- Extreme revisions correspond to **macroeconomic shocks**, not systematic underestimation.  
-- Statistical evidence shows **no persistent revision bias**.
-
-**📊 PolitiFact Rating:** 🔶 **Mostly False**
-
-## Fact-Check #2  
-
-**“BLS job numbers are manipulated during election years — look how big the revisions are.”**
-
-This narrative resurfaces every election cycle. To evaluate it, we compare CES revision magnitudes in **presidential election years vs. non-election years**.
-
-Election years since 1979:  
+Presidential election years since 1979:  
 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024.
 
-We classify each observation:
+We classify each month as:
 
-- `election_year = TRUE` if the month falls in an election calendar year  
-- Otherwise `FALSE`
+- `election_year = TRUE` if it occurs in one of the election calendar years above  
+- `election_year = FALSE` otherwise
 
----
+#### Hypothesis Test
 
-### **Hypothesis Test**
+Because alleged *manipulation* would imply **larger** revisions, we compare **absolute** revision
+magnitudes (size, regardless of sign).
 
-Because alleged “manipulation” would imply **larger** changes, we compare **absolute** revisions.
+::: callout-note
+**Question:** Are absolute revisions larger in election years?
 
-\[
-H_0: \mu_{\text{abs rev, election}} = \mu_{\text{abs rev, nonelection}}
-\]
+We test:
 
-\[
-H_A: \mu_{\text{abs rev, election}} > \mu_{\text{abs rev, nonelection}}
-\]
+$$
+\begin{aligned}
+H_0 &: \mu_{\text{abs rev, election}} = \mu_{\text{abs rev, nonelection}} \\
+H_A &: \mu_{\text{abs rev, election}} > \mu_{\text{abs rev, nonelection}}
+\end{aligned}
+$$
 
-(This is a one-sided test of increased volatility in election years.)
+This is a **one-sided test** of whether volatility is higher in election years.
+:::
 
----
+#### Results (from Task 4.5)
 
-### **Results (from Task 4.5)**
+::: callout-important
+- **Mean absolute revision, election years:** \(\approx 55.2\text{k}\)  
+- **Mean absolute revision, non-election years:** \(\approx 53.6\text{k}\)  
+- **Difference (election − non-election):** \(\approx +1.6\text{k}\) (**very small**)  
+- **95% bootstrap CI for difference:** \([ -18.5\text{k},\ +21.0\text{k} ]\)
+:::
 
-- **Mean absolute revision (election years):** ~55.2k  
-- **Mean absolute revision (non-election years):** ~53.6k  
-- **Difference:** +1.6k (tiny)  
-- **95% bootstrap CI:** \([ -18.5k,\ +21.0k ]\)
+#### Interpretation
 
-**Interpretation:**  
-The confidence interval spans zero, indicating *no evidence* that revisions are systematically larger during election years.
+::: callout-result
+The confidence interval again **spans zero**, so we find **no evidence** that revisions are
+systematically larger in election years. Whatever differences exist are small relative to the
+overall month-to-month variability in the series.
+:::
 
----
+#### Supporting Evidence
 
-### **Supporting Evidence**
+- **Mean revision (election years):** about **+8.7k**  
+- **Mean revision (non-election years):** about **+11.9k**  
+  - Non-election years actually have **slightly higher** mean revisions.  
+- **Median absolute revisions** are **nearly identical** for election and non-election years.  
+- The **largest swings** in the time-series occur around **recessions and COVID-19**, not during
+typical election years.  
+- Decade-by-decade plots show **no special election-year patterns**.
 
-- **Mean revision (election years):** +8.7k  
-- **Mean revision (non-election years):** +11.9k  
-- **Median absolute revisions:** nearly identical  
-- **Major spikes:** occur in 2020 due to **COVID-19**, not the election  
-- **Decade analysis:** no election-year anomalies  
+::: callout-warning
+**Bottom line:** There is **no statistical evidence** that BLS revisions are larger, more positive,
+or more negative in presidential election years. Any differences are small and are overshadowed by
+macroeconomic shocks such as recessions and the COVID-19 pandemic.
+:::
 
----
-
-### **Conclusion**
-
-There is **no statistical evidence** that CES revisions are manipulated or behave differently in presidential election years.
-
-Revisions during election years:
-
-- are **not meaningfully larger**,  
-- are **not more positive or more negative**,  
-- and are **dominated by macroeconomic shocks**, not political cycles.
-
-**📊 PolitiFact Rating:** 🔴 **False**
-
-
+::: callout-tip
+**PolitiFact-style rating:** 🔴 **False**
+:::
 
 ## Conclusion
 
