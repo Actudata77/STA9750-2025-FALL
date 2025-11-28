@@ -348,7 +348,7 @@ ces_eda <- ces |>
   )
 ```
 
-## 3. Summary statistics
+## Summary statistics
 
 ```{r}
 #| label: ces-summary-stats
