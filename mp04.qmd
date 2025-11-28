@@ -271,7 +271,7 @@ nice_table(
 )
 ```
 
-We now have a complete dataset covering more than 45 years of employment reporting. By joining the two sources into a single `ces` table, and can explore:
+We now have a complete dataset covering more than 45 years of employment reporting. By joining the two sources into a single `ces` table, I can explore:
 
 - How total nonfarm payroll has evolved over time  
 - How frequently and how severely initial CES estimates are revised  
@@ -481,7 +481,7 @@ From this, we can easily pull **6 or more statistics** to use, for example:
 
 - date & size of the largest positive and negative revisions;  
 - mean revision and mean absolute revision (thousands of jobs);  
-- average |revision| as a percent of employment level;  
+- average absolute revision as a percent of the employment level;
 - share of revisions that are positive overall;  
 - share positive & mean revision by decade;  
 - which months have systematically larger revision (in absolute value).
@@ -580,7 +580,7 @@ Revisions show meaningful seasonal variation. March, April, and September displa
 
 ### Task 4: Statistical Inference
 
-**1.Has the fraction of negative revisions increased post-2000?**
+**1. Has the fraction of negative revisions increased post-2000?**
 
 In this section I test whether **negative CES revisions** have become **more common after 2000**.  
 Each month’s revision can be classified as either:
@@ -714,7 +714,7 @@ test_dt <- nice_table(
 test_dt
 ```
 
-**2- Has the fraction of revisions of more than 1% increased post-2020?**
+**2. Has the fraction of revisions of more than 1% increased post-2020?**
 
 In this part of the project, we investigate whether the proportion of very large CES revisions (defined as revisions with absolute size ≥ 1% of that month’s employment level) has increased in the post-2020 period.
 
@@ -773,7 +773,7 @@ nice_table(
 
 This means CES revisions almost never reach even 1% of the monthly employment level, before or after 2020.
 
-**3- Is the average revision significantly different from zero?**
+**3. Is the average revision significantly different from zero?**
 
 ```{r}
 #| label: ces-test-mean-revision
@@ -1024,7 +1024,7 @@ nice_table(
   page_len = 5
 )
 ```
-The correlation between monthly CES employment change and the absolute size of CES revisions is negative and statistically significant (r = −0.143, p < 0.01). This indicates that months with larger employment changes tend to have slightly smaller revisions, though the relationship is weak in magnitude ( 0.14)
+The correlation between monthly CES employment change and the absolute size of CES revisions is negative and statistically significant (r = −0.143, p < 0.01).This indicates that months with larger employment changes tend to have slightly smaller revisions, though the relationship is weak in magnitude (|r| ≈ 0.14).
 
 ## Fact-Check BLS Revisions
 
@@ -1130,10 +1130,10 @@ This is a **one-sided test** of whether volatility is higher during election yea
 #### Results (from Task 4.5)
 
 ::: callout-important
-- **Mean absolute revision, election years:** \(\approx 55.2\text{k}\)  
-- **Mean absolute revision, non-election years:** \(\approx 53.6\text{k}\)  
-- **Difference (election − non-election):** \(\approx +1.6\text{k}\) (**very small**)  
-- **95% bootstrap CI for difference:** \([ -18.5\text{k},\ +21.0\text{k} ]\)
+- **Mean absolute revision, election years:** ~55.2k  
+- **Mean absolute revision, non-election years:** ~53.6k  
+- **Difference (election − non-election):** +1.6k (very small)  
+- **95% bootstrap CI for difference:** [−18.5k, +21.0k]
 :::
 
 #### Interpretation
@@ -1170,7 +1170,7 @@ Exploratory analysis showed steady long-term growth in U.S. employment, sharp de
 
 Statistical tests found no significant increase in negative revisions after 2000, no evidence that extremely large revisions became more common after 2020, and no statistically meaningful difference in average revision size before versus after the COVID-19 period. Overall, the data do not support claims that CES systematically underestimates job growth.
 
-Finally, applying these results to real political claims showed that popular narratives about CES bias or partisan influence are not supported by empirical evidence. While revisions are unavoidable in a large, they do not display long-term directional or political patterns.
+Finally, applying these results to real political claims showed that popular narratives about CES bias or partisan influence are not supported by empirical evidence. While revisions are unavoidable in a large, complex survey like CES, they do not display long-term directional or political patterns.
 
 ------------------------------------------------------------------------
 
