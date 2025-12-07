@@ -25,9 +25,7 @@ execute:
 
 The monthly jobs report released by the Bureau of Labor Statistics (BLS) plays an outsized role in shaping public narratives about the American economy. Beyond its impact on financial markets and policy decisions, the employment number, formally the Current Employment Statistics (CES) estimate of total nonfarm payroll, is increasingly used in political debates. In August 2025, the sudden dismissal of BLS Commissioner Dr. Erika McEntarfer intensified national scrutiny of the accuracy and reliability of CES estimates, especially the month-to-month revisions.
 
-This mini-project investigates whether recent CES revisions are unusually large or politically concerning. To answer this question, I use modern data-acquisition techniques (`httr2`, `rvest`), multi-table data processing (`dplyr`), visualization (`ggplot2`), and statistical inference (`infer`) to construct a reproducible analysis pipeline. By re-creating the BLS’s reported CES levels and revisions directly from the agency’s website, I can explore long-run revision patterns and evaluate some factual claims
-
-Throughout this project, I aim to combine technical accuracy with transparent communication. My goal is to understand *how* CES estimates change, *why* revisions occur, and whether the data supports or contradicts public claims about BLS reliability.
+This mini-project investigates whether recent CES revisions are unusually large or politically concerning. To answer this question, I use modern data-acquisition techniques (`httr2`, `rvest`), multi-table data processing (`dplyr`), visualization (`ggplot2`), and statistical inference (`infer`) to construct a reproducible analysis pipeline. By re-creating the BLS’s reported CES levels and revisions directly from the agency’s website, I can explore long-run revision patterns and evaluate some factual claims.
 
 ## Data Acquisition and Preparation
 
@@ -1166,11 +1164,11 @@ macroeconomic shocks such as the recessions and the COVID-19 pandemic.
 
 ## Conclusion
 
-Exploratory analysis showed steady long-term growth in U.S. employment, sharp declines during recessions, and occasional large revisions concentrated around major economic shocks. Most revisions were small relative to total employment, though some months and decades consistently showed larger variability.
+Exploratory analysis showed steady long-term growth in U.S. employment, sharp declines during recessions, and occasional large revisions concentrated around the major economic shocks. Most revisions were small relative to total employment, though some months and decades consistently showed larger variability.
 
 Statistical tests found no significant increase in negative revisions after 2000, no evidence that extremely large revisions became more common after 2020, and no statistically meaningful difference in average revision size before versus after the COVID-19 period. Overall, the data do not support claims that CES systematically underestimates job growth.
 
-Finally, applying these results to real political claims showed that popular narratives about CES bias or partisan influence are not supported by empirical evidence. While revisions are unavoidable in a large, complex survey like CES, they do not display long-term directional or political patterns.
+Finally, applying these results to real political claims showed that popular narratives about CES bias or partisan influence are not supported by empirical evidence. While revisions are unavoidable in a large, complex survey like the CES, they do not display long-term directional or political patterns.
 
 ------------------------------------------------------------------------
 

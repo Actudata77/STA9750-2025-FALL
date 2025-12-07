@@ -2,3 +2,20 @@
 table.dataTable thead th {
   text-transform: none !important;
 }
+
+/* Slightly narrow main text column */
+main.content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Extra breathing room above major headings */
+h1, h2 {
+  margin-top: 2.2rem;
+}
+
+/* A little space before callouts */
+.callout {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
