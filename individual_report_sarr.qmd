@@ -49,10 +49,10 @@ Taken together, these results indicate that income-based inequality is not clear
 
 # Packages
 if (!requireNamespace("RSocrata", quietly = TRUE)) install.packages("RSocrata")
-if (!requireNamespace("dplyr", quietly = TRUE))    install.packages("dplyr")
+if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
 if (!requireNamespace("lubridate", quietly = TRUE)) install.packages("lubridate")
-if (!requireNamespace("purrr", quietly = TRUE))    install.packages("purrr")
-if (!requireNamespace("arrow", quietly = TRUE))    install.packages("arrow")
+if (!requireNamespace("purrr", quietly = TRUE)) install.packages("purrr")
+if (!requireNamespace("arrow", quietly = TRUE)) install.packages("arrow")
 
 library(RSocrata)
 library(dplyr)
@@ -68,12 +68,12 @@ socrata_time <- function(x) format(x, "%Y-%m-%dT%H:%M:%OS3")
 
 # Function to pull one month of 311 data with residential filter
 get_311_month <- function(year, month) {
-  year  <- as.integer(year)
+  year <- as.integer(year)
   month <- as.integer(month)
 
   # Start/end of month in NYC time
   start <- ymd(sprintf("%04d-%02d-01", year, month), quiet = TRUE)
-  end   <- (start %m+% months(1)) - milliseconds(1)
+  end <- (start %m+% months(1)) - milliseconds(1)
 
   # WHERE clause: date range + residential/neighborhood complaints
   where_clause <- sprintf(
@@ -94,16 +94,18 @@ get_311_month <- function(year, month) {
 
   # Columns to pull from erm2-nwe9
   sel_cols <- paste(
-    c("created_date", "closed_date", "complaint_type", "incident_zip",
-      "borough", "latitude", "longitude", "community_board", "bbl"),
+    c(
+      "created_date", "closed_date", "complaint_type", "incident_zip",
+      "borough", "latitude", "longitude", "community_board", "bbl"
+    ),
     collapse = ","
   )
 
   base_url <- "https://data.cityofnewyork.us/resource/erm2-nwe9.csv"
   q <- paste0(
-    "$select=", utils::URLencode(sel_cols,     reserved = TRUE),
+    "$select=", utils::URLencode(sel_cols, reserved = TRUE),
     "&$where=", utils::URLencode(where_clause, reserved = TRUE),
-    "&$order=", utils::URLencode(":id",        reserved = TRUE)
+    "&$order=", utils::URLencode(":id", reserved = TRUE)
   )
   full_url <- paste0(base_url, "?", q)
 
@@ -150,7 +152,6 @@ nyc311_2024_raw <- arrow::read_parquet(
 )
 
 glimpse(nyc311_2024_raw)
-
 ```
 
 
@@ -164,9 +165,8 @@ result to `nyc_income_acs.csv`. In the main analysis, this file is filtered to t
 that appear in the 311 dataset and renamed as `nyc_income.csv`.
 
 ```{r}
-
 #| label: income-acquisition
-#| eval: false      
+#| eval: false
 #| message: false
 #| warning: false
 #| code-fold: true
@@ -174,8 +174,8 @@ that appear in the 311 dataset and renamed as `nyc_income.csv`.
 # Install packages if needed
 
 if (!requireNamespace("tidycensus", quietly = TRUE)) install.packages("tidycensus")
-if (!requireNamespace("dplyr", quietly = TRUE))      install.packages("dplyr")
-if (!requireNamespace("readr", quietly = TRUE))      install.packages("readr")
+if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
+if (!requireNamespace("readr", quietly = TRUE)) install.packages("readr")
 
 library(tidycensus)
 library(dplyr)
@@ -192,21 +192,20 @@ census_api_key(Sys.getenv("CENSUS_API_KEY"), install = FALSE, overwrite = FALSE)
 # Variable B19013_001 = "Median household income in the past 12 months (in 2020 inflation-adjusted dollars)"
 
 income_acs <- get_acs(
-geography = "zcta",
-variables = "B19013_001",
-year      = 2020,
-survey    = "acs5"
+  geography = "zcta",
+  variables = "B19013_001",
+  year      = 2020,
+  survey    = "acs5"
 ) %>%
-transmute(
-zip_code      = GEOID,          # 5-digit ZIP/ZCTA
-median_income = estimate,       # median household income (dollars)
-moe           = moe             # margin of error
-)
+  transmute(
+    zip_code      = GEOID, # 5-digit ZIP/ZCTA
+    median_income = estimate, # median household income (dollars)
+    moe           = moe # margin of error
+  )
 
 # 3. Save full ACS income file; later I filter to NYC ZIPs via the 311 join
 
 write_csv(income_acs, "nyc_income_acs.csv")
-
 ```
 
 For the regression and visualization sections, I used a filtered version of this file,
@@ -220,10 +219,9 @@ and drops the ACS margin-of-error column.
 #| eval: false   # <--- ADD THIS
 
 nyc_income <- readr::read_csv("nyc_income_acs.csv") %>%
-  filter(zip_code %in% unique(nyc_zip$zip_code)) %>%  # keep only ZIPs seen in 311
-  select(zip_code, median_income)                     # drop moe, keep income
+  filter(zip_code %in% unique(nyc_zip$zip_code)) %>% # keep only ZIPs seen in 311
+  select(zip_code, median_income) # drop moe, keep income
 write_csv(nyc_income, "nyc_income.csv")
-
 ```
 
 
@@ -276,7 +274,6 @@ This produced a final analytic dataset with 264 ZIP codes, each containing:
 
 
 ```{r}
-
 #| label: setup
 #| echo: true
 
@@ -302,7 +299,7 @@ nyc_income <- nyc_income %>%
 nyc_311 <- nyc_311 %>%
   mutate(
     created_date   = ymd_hms(created_date, tz = "America/New_York", quiet = TRUE),
-    closed_date    = ymd_hms(closed_date,  tz = "America/New_York", quiet = TRUE),
+    closed_date    = ymd_hms(closed_date, tz = "America/New_York", quiet = TRUE),
     response_hours = as.numeric(difftime(closed_date, created_date, units = "hours")),
     zip_code       = as.character(incident_zip),
     latitude       = suppressWarnings(as.numeric(latitude)),
@@ -325,9 +322,9 @@ nyc_311 <- nyc_311 %>%
 nyc_zip <- nyc_311 %>%
   group_by(zip_code) %>%
   summarise(
-    avg_response    = mean(response_hours, na.rm = TRUE),
+    avg_response = mean(response_hours, na.rm = TRUE),
     median_response = median(response_hours, na.rm = TRUE),
-    n_complaints    = n(),
+    n_complaints = n(),
     .groups = "drop"
   )
 
@@ -338,9 +335,6 @@ nyc_joined <- nyc_zip %>%
 
 # Quick glimpse for sanity
 dplyr::glimpse(nyc_joined)
-
-
-
 ```
 
 # Exploratory Analysis
@@ -359,15 +353,13 @@ ggplot(scatter_data, aes(x = median_income, y = avg_response)) +
   geom_point(alpha = 0.6, color = "#0072B2") +
   geom_smooth(method = "lm", se = TRUE, color = "red", linewidth = 1.1) +
   labs(
-  x = "Median Household Income ($)",
-  y = "Average 311 Response Time (hours)",
-  title = "Income vs Response Time Across NYC ZIP Codes",
-  subtitle = "Y-axis truncated at 200 hours for readability; outliers retained in analysis"
-) +
-    coord_cartesian(ylim = c(0, 200)) +
-    theme_minimal(base_size = 14)
-
-
+    x = "Median Household Income ($)",
+    y = "Average 311 Response Time (hours)",
+    title = "Income vs Response Time Across NYC ZIP Codes",
+    subtitle = "Y-axis truncated at 200 hours for readability; outliers retained in analysis"
+  ) +
+  coord_cartesian(ylim = c(0, 200)) +
+  theme_minimal(base_size = 14)
 ```
 
 
@@ -377,7 +369,6 @@ A Pearson correlation further quantifies this:
 
 ```{r}
 cor(nyc_joined$median_income, nyc_joined$avg_response, use = "complete.obs")
-
 ```
 This value is extremely close to zero, indicating no meaningful linear relationship between ZIP-code–level income and average 311 response times.
 In other words, areas with higher income do not consistently receive faster or slower 311 service based on this measure.
@@ -391,7 +382,6 @@ To formally evaluate whether income predicts variation in response times, I esti
 ```{r}
 m1 <- lm(avg_response ~ median_income, data = nyc_joined)
 summary(m1)
-
 ```
 
 ## Model 1: Simple Linear Regression
@@ -422,7 +412,6 @@ nyc_joined_b <- nyc_joined %>% left_join(zip_borough, by = "zip_code")
 
 m2 <- lm(avg_response ~ median_income + borough, data = nyc_joined_b)
 summary(m2)
-
 ```
 
 ## Model 2: Multiple Regression with Borough Controls
@@ -471,19 +460,18 @@ ggplot(borough_zip, aes(x = borough, y = avg_response)) +
     fill = "#cfe7ff",
     color = "#0056b3"
   ) +
-labs(
-  x = "Borough",
-  y = "Average 311 Response Time (hours)",
-  title = "ZIP-level 311 Response Times by Borough",
-  subtitle = "ZIP code average response times, by borough"
-)+
+  labs(
+    x = "Borough",
+    y = "Average 311 Response Time (hours)",
+    title = "ZIP-level 311 Response Times by Borough",
+    subtitle = "ZIP code average response times, by borough"
+  ) +
   theme_minimal(base_size = 14) +
   theme(
     plot.title = element_text(face = "bold"),
     axis.text.x = element_text(face = "bold"),
     panel.grid.minor = element_blank()
   )
-
 ```
 
 

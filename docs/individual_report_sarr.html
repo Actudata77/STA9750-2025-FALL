@@ -4088,10 +4088,10 @@ window.Quarto = {
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Packages</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;RSocrata&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;RSocrata&quot;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))    <span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;lubridate&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;lubridate&quot;</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;purrr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))    <span class="fu">install.packages</span>(<span class="st">&quot;purrr&quot;</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;arrow&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))    <span class="fu">install.packages</span>(<span class="st">&quot;arrow&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;purrr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;purrr&quot;</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;arrow&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;arrow&quot;</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RSocrata)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
@@ -4107,12 +4107,12 @@ window.Quarto = {
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to pull one month of 311 data with residential filter</span></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>get_311_month <span class="ot">&lt;-</span> <span class="cf">function</span>(year, month) {</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  year  <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(year)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  year <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(year)</span>
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  month <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(month)</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Start/end of month in NYC time</span></span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  start <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%04d-%02d-01&quot;</span>, year, month), <span class="at">quiet =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  end   <span class="ot">&lt;-</span> (start <span class="sc">%m+%</span> <span class="fu">months</span>(<span class="dv">1</span>)) <span class="sc">-</span> <span class="fu">milliseconds</span>(<span class="dv">1</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  end <span class="ot">&lt;-</span> (start <span class="sc">%m+%</span> <span class="fu">months</span>(<span class="dv">1</span>)) <span class="sc">-</span> <span class="fu">milliseconds</span>(<span class="dv">1</span>)</span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># WHERE clause: date range + residential/neighborhood complaints</span></span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  where_clause <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(</span>
@@ -4133,47 +4133,49 @@ window.Quarto = {
 <span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Columns to pull from erm2-nwe9</span></span>
 <span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  sel_cols <span class="ot">&lt;-</span> <span class="fu">paste</span>(</span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;created_date&quot;</span>, <span class="st">&quot;closed_date&quot;</span>, <span class="st">&quot;complaint_type&quot;</span>, <span class="st">&quot;incident_zip&quot;</span>,</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;borough&quot;</span>, <span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;community_board&quot;</span>, <span class="st">&quot;bbl&quot;</span>),</span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">collapse =</span> <span class="st">&quot;,&quot;</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  base_url <span class="ot">&lt;-</span> <span class="st">&quot;https://data.cityofnewyork.us/resource/erm2-nwe9.csv&quot;</span></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>  q <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;$select=&quot;</span>, utils<span class="sc">::</span><span class="fu">URLencode</span>(sel_cols,     <span class="at">reserved =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;&amp;$where=&quot;</span>, utils<span class="sc">::</span><span class="fu">URLencode</span>(where_clause, <span class="at">reserved =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;&amp;$order=&quot;</span>, utils<span class="sc">::</span><span class="fu">URLencode</span>(<span class="st">&quot;:id&quot;</span>,        <span class="at">reserved =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>  full_url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, <span class="st">&quot;?&quot;</span>, q)</span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">&quot;Pulling &quot;</span>, month.name[month], <span class="st">&quot; &quot;</span>, year, <span class="st">&quot; …&quot;</span>)</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;created_date&quot;</span>, <span class="st">&quot;closed_date&quot;</span>, <span class="st">&quot;complaint_type&quot;</span>, <span class="st">&quot;incident_zip&quot;</span>,</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;borough&quot;</span>, <span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;community_board&quot;</span>, <span class="st">&quot;bbl&quot;</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">collapse =</span> <span class="st">&quot;,&quot;</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>  base_url <span class="ot">&lt;-</span> <span class="st">&quot;https://data.cityofnewyork.us/resource/erm2-nwe9.csv&quot;</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>  q <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;$select=&quot;</span>, utils<span class="sc">::</span><span class="fu">URLencode</span>(sel_cols, <span class="at">reserved =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;&amp;$where=&quot;</span>, utils<span class="sc">::</span><span class="fu">URLencode</span>(where_clause, <span class="at">reserved =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;&amp;$order=&quot;</span>, utils<span class="sc">::</span><span class="fu">URLencode</span>(<span class="st">&quot;:id&quot;</span>, <span class="at">reserved =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>  full_url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, <span class="st">&quot;?&quot;</span>, q)</span>
 <span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">read.socrata</span>(</span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>    full_url,</span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">app_token =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;SOCRATA_APP_TOKEN&quot;</span>)</span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>  df</span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull January–April 2024 (4 months)</span></span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>months_to_pull <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span></span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>raw_list <span class="ot">&lt;-</span> <span class="fu">map</span>(months_to_pull, <span class="sc">~</span> <span class="fu">get_311_month</span>(<span class="dv">2024</span>, .x))</span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>nyc311_2024_raw <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(raw_list)</span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the dataset</span></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(</span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>  nyc311_2024_raw,</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;nyc311_2024_jan_apr_residential_raw.csv&quot;</span>,</span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="fu">write_parquet</span>(</span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>  nyc311_2024_raw,</span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;nyc311_2024_jan_apr_residential_raw.parquet&quot;</span></span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(nyc311_2024_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">&quot;Pulling &quot;</span>, month.name[month], <span class="st">&quot; &quot;</span>, year, <span class="st">&quot; …&quot;</span>)</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>  df <span class="ot">&lt;-</span> <span class="fu">read.socrata</span>(</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>    full_url,</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>    <span class="at">app_token =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;SOCRATA_APP_TOKEN&quot;</span>)</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>  df</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull January–April 2024 (4 months)</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>months_to_pull <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>raw_list <span class="ot">&lt;-</span> <span class="fu">map</span>(months_to_pull, <span class="sc">~</span> <span class="fu">get_311_month</span>(<span class="dv">2024</span>, .x))</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>nyc311_2024_raw <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(raw_list)</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the dataset</span></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>  nyc311_2024_raw,</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;nyc311_2024_jan_apr_residential_raw.csv&quot;</span>,</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="fu">write_parquet</span>(</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>  nyc311_2024_raw,</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;nyc311_2024_jan_apr_residential_raw.parquet&quot;</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(nyc311_2024_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
@@ -4209,47 +4211,41 @@ $ bbl             &lt;dbl&gt; 4005790036, 4049550034, 2040270021, 1021360007, NA
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: income-acquisition</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false      </span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install packages if needed</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;tidycensus&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;tidycensus&quot;</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;readr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;readr&quot;</span>)</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Install packages if needed</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;tidycensus&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">&quot;tidycensus&quot;</span>)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))      <span class="fu">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">&quot;readr&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))      <span class="fu">install.packages</span>(<span class="st">&quot;readr&quot;</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidycensus)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Census API key</span></span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidycensus)</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># I stored my key in the CENSUS_API_KEY environment variable via ~/.Renviron</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">census_api_key</span>(<span class="fu">Sys.getenv</span>(<span class="st">&quot;CENSUS_API_KEY&quot;</span>), <span class="at">install =</span> <span class="cn">FALSE</span>, <span class="at">overwrite =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Census API key</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Pull ACS 2020 5-year median household income by ZCTA (ZIP Code Tabulation Area)</span></span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co"># I stored my key in the CENSUS_API_KEY environment variable via ~/.Renviron</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Variable B19013_001 = &quot;Median household income in the past 12 months (in 2020 inflation-adjusted dollars)&quot;</span></span>
 <span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="fu">census_api_key</span>(<span class="fu">Sys.getenv</span>(<span class="st">&quot;CENSUS_API_KEY&quot;</span>), <span class="at">install =</span> <span class="cn">FALSE</span>, <span class="at">overwrite =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Pull ACS 2020 5-year median household income by ZCTA (ZIP Code Tabulation Area)</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Variable B19013_001 = &quot;Median household income in the past 12 months (in 2020 inflation-adjusted dollars)&quot;</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>income_acs <span class="ot">&lt;-</span> <span class="fu">get_acs</span>(</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="at">geography =</span> <span class="st">&quot;zcta&quot;</span>,</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="at">variables =</span> <span class="st">&quot;B19013_001&quot;</span>,</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="at">year      =</span> <span class="dv">2020</span>,</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="at">survey    =</span> <span class="st">&quot;acs5&quot;</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="fu">transmute</span>(</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="at">zip_code      =</span> GEOID,          <span class="co"># 5-digit ZIP/ZCTA</span></span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="at">median_income =</span> estimate,       <span class="co"># median household income (dollars)</span></span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="at">moe           =</span> moe             <span class="co"># margin of error</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Save full ACS income file; later I filter to NYC ZIPs via the 311 join</span></span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(income_acs, <span class="st">&quot;nyc_income_acs.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>income_acs <span class="ot">&lt;-</span> <span class="fu">get_acs</span>(</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">geography =</span> <span class="st">&quot;zcta&quot;</span>,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">variables =</span> <span class="st">&quot;B19013_001&quot;</span>,</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">year      =</span> <span class="dv">2020</span>,</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">survey    =</span> <span class="st">&quot;acs5&quot;</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">zip_code      =</span> GEOID, <span class="co"># 5-digit ZIP/ZCTA</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_income =</span> estimate, <span class="co"># median household income (dollars)</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">moe           =</span> moe <span class="co"># margin of error</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Save full ACS income file; later I filter to NYC ZIPs via the 311 join</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(income_acs, <span class="st">&quot;nyc_income_acs.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>For the regression and visualization sections, I used a filtered version of this file, <code>nyc_income.csv</code>, which keeps only the ZIP codes that appear in the cleaned 311 dataset and drops the ACS margin-of-error column.</p>
@@ -4257,8 +4253,8 @@ $ bbl             &lt;dbl&gt; 4005790036, 4049550034, 2040270021, 1021360007, NA
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>nyc_income <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">&quot;nyc_income_acs.csv&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(zip_code <span class="sc">%in%</span> <span class="fu">unique</span>(nyc_zip<span class="sc">$</span>zip_code)) <span class="sc">%&gt;%</span>  <span class="co"># keep only ZIPs seen in 311</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(zip_code, median_income)                     <span class="co"># drop moe, keep income</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(zip_code <span class="sc">%in%</span> <span class="fu">unique</span>(nyc_zip<span class="sc">$</span>zip_code)) <span class="sc">%&gt;%</span> <span class="co"># keep only ZIPs seen in 311</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(zip_code, median_income) <span class="co"># drop moe, keep income</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(nyc_income, <span class="st">&quot;nyc_income.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
@@ -4314,67 +4310,64 @@ This produced a final analytic dataset with 264 ZIP codes, each containing:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arrow)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Load data ----</span></span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arrow)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Load data ----</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 311 dataset: residential complaints, January–April 2024</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>nyc_311 <span class="ot">&lt;-</span> <span class="fu">read_parquet</span>(<span class="st">&quot;nyc311_2024_jan_apr_residential_raw.parquet&quot;</span>)</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 311 dataset: residential complaints, January–April 2024</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>nyc_311 <span class="ot">&lt;-</span> <span class="fu">read_parquet</span>(<span class="st">&quot;nyc311_2024_jan_apr_residential_raw.parquet&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Income data (ACS 2020 5-year, ZIP level)</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>nyc_income <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;nyc_income.csv&quot;</span>)</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Income data (ACS 2020 5-year, ZIP level)</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>nyc_income <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;nyc_income.csv&quot;</span>)</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean ZIP codes in income data: keep only digits</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>nyc_income <span class="ot">&lt;-</span> nyc_income <span class="sc">%&gt;%</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">zip_code =</span> <span class="fu">gsub</span>(<span class="st">&quot;[^0-9]&quot;</span>, <span class="st">&quot;&quot;</span>, zip_code))</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Compute response times and clean 311 data ----</span></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>nyc_311 <span class="ot">&lt;-</span> nyc_311 <span class="sc">%&gt;%</span></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">created_date   =</span> <span class="fu">ymd_hms</span>(created_date, <span class="at">tz =</span> <span class="st">&quot;America/New_York&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">closed_date    =</span> <span class="fu">ymd_hms</span>(closed_date,  <span class="at">tz =</span> <span class="st">&quot;America/New_York&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">response_hours =</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(closed_date, created_date, <span class="at">units =</span> <span class="st">&quot;hours&quot;</span>)),</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">zip_code       =</span> <span class="fu">as.character</span>(incident_zip),</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">latitude       =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(latitude)),</span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">longitude      =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(longitude))</span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># basic trimming for sanity</span></span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(response_hours),</span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>    response_hours <span class="sc">&gt;=</span> <span class="dv">0</span>,</span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    response_hours <span class="sc">&lt;=</span> <span class="dv">30</span> <span class="sc">*</span> <span class="dv">24</span></span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop rows with missing / unspecified borough</span></span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(borough),</span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    borough <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;BRONX&quot;</span>, <span class="st">&quot;BROOKLYN&quot;</span>, <span class="st">&quot;MANHATTAN&quot;</span>, <span class="st">&quot;QUEENS&quot;</span>, <span class="st">&quot;STATEN ISLAND&quot;</span>)</span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Aggregate 311 response by ZIP ----</span></span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>nyc_zip <span class="ot">&lt;-</span> nyc_311 <span class="sc">%&gt;%</span></span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(zip_code) <span class="sc">%&gt;%</span></span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_response    =</span> <span class="fu">mean</span>(response_hours, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_response =</span> <span class="fu">median</span>(response_hours, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_complaints    =</span> <span class="fu">n</span>(),</span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Join with income ----</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean ZIP codes in income data: keep only digits</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>nyc_income <span class="ot">&lt;-</span> nyc_income <span class="sc">%&gt;%</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">zip_code =</span> <span class="fu">gsub</span>(<span class="st">&quot;[^0-9]&quot;</span>, <span class="st">&quot;&quot;</span>, zip_code))</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Compute response times and clean 311 data ----</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>nyc_311 <span class="ot">&lt;-</span> nyc_311 <span class="sc">%&gt;%</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">created_date   =</span> <span class="fu">ymd_hms</span>(created_date, <span class="at">tz =</span> <span class="st">&quot;America/New_York&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">closed_date    =</span> <span class="fu">ymd_hms</span>(closed_date, <span class="at">tz =</span> <span class="st">&quot;America/New_York&quot;</span>, <span class="at">quiet =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">response_hours =</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(closed_date, created_date, <span class="at">units =</span> <span class="st">&quot;hours&quot;</span>)),</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">zip_code       =</span> <span class="fu">as.character</span>(incident_zip),</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">latitude       =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(latitude)),</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">longitude      =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(longitude))</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># basic trimming for sanity</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(response_hours),</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    response_hours <span class="sc">&gt;=</span> <span class="dv">0</span>,</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    response_hours <span class="sc">&lt;=</span> <span class="dv">30</span> <span class="sc">*</span> <span class="dv">24</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop rows with missing / unspecified borough</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(borough),</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    borough <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;BRONX&quot;</span>, <span class="st">&quot;BROOKLYN&quot;</span>, <span class="st">&quot;MANHATTAN&quot;</span>, <span class="st">&quot;QUEENS&quot;</span>, <span class="st">&quot;STATEN ISLAND&quot;</span>)</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Aggregate 311 response by ZIP ----</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>nyc_zip <span class="ot">&lt;-</span> nyc_311 <span class="sc">%&gt;%</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(zip_code) <span class="sc">%&gt;%</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_response =</span> <span class="fu">mean</span>(response_hours, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_response =</span> <span class="fu">median</span>(response_hours, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_complaints =</span> <span class="fu">n</span>(),</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Join with income ----</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>nyc_joined <span class="ot">&lt;-</span> nyc_zip <span class="sc">%&gt;%</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nyc_income, <span class="at">by =</span> <span class="st">&quot;zip_code&quot;</span>)</span>
 <span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>nyc_joined <span class="ot">&lt;-</span> nyc_zip <span class="sc">%&gt;%</span></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nyc_income, <span class="at">by =</span> <span class="st">&quot;zip_code&quot;</span>)</span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick glimpse for sanity</span></span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(nyc_joined)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick glimpse for sanity</span></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(nyc_joined)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 237
@@ -4400,13 +4393,13 @@ $ median_income   &lt;int&gt; NA, 96787, 35607, 129981, 204949, 184681, 185268, 
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">&quot;#0072B2&quot;</span>) <span class="sc">+</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="at">se =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">linewidth =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="st">&quot;Median Household Income ($)&quot;</span>,</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">&quot;Average 311 Response Time (hours)&quot;</span>,</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Income vs Response Time Across NYC ZIP Codes&quot;</span>,</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">subtitle =</span> <span class="st">&quot;Y-axis truncated at 200 hours for readability; outliers retained in analysis&quot;</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">200</span>)) <span class="sc">+</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Median Household Income ($)&quot;</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Average 311 Response Time (hours)&quot;</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Income vs Response Time Across NYC ZIP Codes&quot;</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Y-axis truncated at 200 hours for readability; outliers retained in analysis&quot;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">200</span>)) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -4573,12 +4566,12 @@ F-statistic: 4.175 on 5 and 183 DF,  p-value: 0.001288</code></pre>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;#cfe7ff&quot;</span>,</span>
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;#0056b3&quot;</span></span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="fu">labs</span>(</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="st">&quot;Borough&quot;</span>,</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">&quot;Average 311 Response Time (hours)&quot;</span>,</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;ZIP-level 311 Response Times by Borough&quot;</span>,</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">subtitle =</span> <span class="st">&quot;ZIP code average response times, by borough&quot;</span></span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>)<span class="sc">+</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Borough&quot;</span>,</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Average 311 Response Time (hours)&quot;</span>,</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;ZIP-level 311 Response Times by Borough&quot;</span>,</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;ZIP code average response times, by borough&quot;</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
 <span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
 <span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">&quot;bold&quot;</span>),</span>
