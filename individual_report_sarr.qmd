@@ -395,24 +395,22 @@ summary(m1)
 ```
 
 ## Model 1: Simple Linear Regression
-
 ### **Key Output**
-- **Coefficient for median_income:** \(5.04 \times 10^{-6}\)  
+- **Coefficient for median_income:** 5.04 × 10⁻⁶
 - **p-value:** 0.939  
 - **R²:** 0.0003 (effectively zero)  
 - **Residual SD:** ~34.5 hours  
 
 ### **Interpretation**
+The coefficient for **median_income** is extremely small. A $10,000 increase in income corresponds to an estimated change of only:
 
-The coefficient for **median_income** is extremely small. A \$10,000 increase in income corresponds to an estimated change of only:
-
-\[
-10{,}000 \times 5.04 \times 10^{-6} \approx 0.05 \text{ hours} \approx 3 \text{ minutes}
-\]
+$$
+10,000 \times 5.04 \times 10^{-6} \approx 0.05 \text{ hours} \approx 3 \text{ minutes}
+$$
 
 This effect is negligible, and with a p-value of 0.939, it is not statistically significant.
 
-The model’s **R² ≈ 0.0003 shows that income explains essentially none of the variation in ZIP-level 311 response times.
+The model's **R² ≈ 0.0003** shows that income explains essentially none of the variation in ZIP-level 311 response times.
 
 
 ## Model 2: Multiple Regression with Borough Controls
@@ -436,7 +434,7 @@ summary(m2)
   - Manhattan: ~26 hours faster  
   - Queens: ~35 hours faster  
   - Staten Island: ~29 hours faster  
-- **R²:** ~0.11  
+- **R²:** ~0.10  
 
 ### **Interpretation**
 
