@@ -491,7 +491,6 @@ labs(
 
 The boxplots show that all five boroughs have overlapping distributions, but median response times differ modestly. Queens and Staten Island tend to have slightly lower median response times, while the Bronx and Manhattan show somewhat higher medians and more extreme outliers.
 
-
 # Overall Interpretation
 
 Across roughly one million 311 complaints and 264 ZIP codes, income level does not meaningfully predict NYC 311 response times. The income effect is statistically insignificant in both simple and adjusted models and substantively tiny. Geographic differences — particularly across boroughs — explain somewhat more variation, but overall response times remain largely independent of neighborhood income during the January–April 2024 period.
@@ -529,7 +528,7 @@ These findings collectively demonstrate that income-based inequities in 311 resp
 
 Although income does not appear to influence 311 response times in this analysis, several contextual and methodological limitations should be considered before generalizing these findings.
 
-**First**, the income data comes from the **ACS 2020 5-year estimates**, while the 311 dataset covers January–April 2024. Economic conditions, neighborhood composition, and demographic shifts during the post-pandemic period may have altered income distributions. Using more recent ACS estimates or modeled income data could provide a more temporally aligned comparison.
+**First**, the income data comes from the ACS 2020 5-year estimates, while the 311 dataset covers January–April 2024. Economic conditions, neighborhood composition, and demographic shifts during the post-pandemic period may have altered income distributions. Using more recent ACS estimates or modeled income data could provide a more temporally aligned comparison.
 
 **Second**, ZIP codes are relatively large and heterogeneous geographic units. Considerable income variation exists within ZIP codes, especially in boroughs such as Manhattan and Brooklyn where boundaries span multiple neighborhoods. A tract-level or block-group-level analysis would offer more granularity but would require more precise geocoding of 311 complaint locations.
 
