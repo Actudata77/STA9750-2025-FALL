@@ -4551,7 +4551,7 @@ F-statistic: 4.175 on 5 and 183 DF,  p-value: 0.001288</code></pre>
 <h3 class="anchored" data-anchor-id="interpretation-1"><strong>Interpretation</strong></h3>
 <p>After controlling for borough-level geography, income remains unrelated to response times.</p>
 <p>All four borough indicators are <strong>negative and statistically significant</strong>, indicating that these areas have <strong>substantially faster</strong> resolution times than the reference borough (likely <strong>The Bronx</strong>).</p>
-<p>The model’s R² ≈ 0.11 means borough + income explain roughly 11% of the variation in response times; the remaining 89% is driven by other factors (complaint type, workload, timing, agency behavior, etc.).</p>
+<p>The model’s R² ≈ 0.10 means borough + income explain roughly 10% of the variation in response times; the remaining 90% is driven by other factors (complaint type, workload, timing, agency behavior, etc.).</p>
 </section>
 </section>
 <section id="borough-level-visualization" class="level2">
@@ -4615,23 +4615,23 @@ F-statistic: 4.175 on 5 and 183 DF,  p-value: 0.001288</code></pre>
 </div>
 <div class="callout-body-container callout-body">
 <ul>
-<li><p><strong>Correlation:</strong><br>
-The correlation between median household income and average 311 response times is <strong>≈ 0.05</strong> — a <em>very weak</em> linear association.</p></li>
-<li><p><strong>Income effect in simple regression:</strong><br>
-The coefficient on income is 3.85 × 10⁻⁵ hours per dollar, equivalent to roughly<br>
-0.38 hours (~23 minutes) change in average response time per $10,000 increase — a substantively negligible effect.</p></li>
-<li><p><strong>Statistical significance:</strong><br>
-Income is not significan in any model (p ≈ 0.50 in the simple regression; p ≈ 0.13 after adding borough).</p></li>
-<li><p><strong>Explained variance:</strong></p>
+<li><strong>Correlation:</strong><br>
+The correlation between median household income and average 311 response times is <strong>≈ 0.05</strong> — a <em>very weak</em> linear association.</li>
+<li><strong>Income effect in simple regression:</strong><br>
+The coefficient on income is 5.04 × 10⁻⁶ hours per dollar, equivalent to roughly<br>
+0.05 hours (~3 minutes) change in average response time per $10,000 increase — a substantively negligible effect.</li>
+<li><strong>Statistical significance:</strong><br>
+Income is not significant in any model (p ≈ 0.94 in the simple regression; p ≈ 0.41 after adding borough).</li>
+<li><strong>Explained variance:</strong>
 <ul>
-<li>Simple regression: R² ≈ 0.0025 (income explains about 0.25% of the variation).<br>
+<li>Simple regression: R² ≈ 0.0003 (income explains essentially none of the variation).<br>
 </li>
-<li>With borough adjustment: R² ≈ 0.11 (boroughs jointly explain about 11% of the variation; income still contributes little).</li>
+<li>With borough adjustment: R² ≈ 0.10 (boroughs jointly explain about 10% of the variation; income still contributes little).</li>
 </ul></li>
-<li><p><strong>Borough effects:</strong><br>
-Several boroughs show faster response times — often 25–35 hours shorter than the reference borough — while the income effect remains negligible.</p></li>
-<li><p><strong>Substantive conclusion:</strong><br>
-Income does not drive variation in NYC 311 response times during the January–April 2024 period.</p></li>
+<li><strong>Borough effects:</strong><br>
+Several boroughs show faster response times — often 25–35 hours shorter than the reference borough — while the income effect remains negligible.</li>
+<li><strong>Substantive conclusion:</strong><br>
+Income does not drive variation in NYC 311 response times during the January–April 2024 period.</li>
 </ul>
 </div>
 </div>
