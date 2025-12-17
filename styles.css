@@ -19,3 +19,14 @@ h1, h2 {
   margin-top: 1rem;
   margin-bottom: 1.5rem;
 }
+
+
+/* Prevent floating TOC from overlapping header image */
+.sidebar nav#TOC {
+  margin-top: 4rem;
+}
+
+/* Fallback selector (safe to include) */
+#TOC {
+  margin-top: 4rem;
+}

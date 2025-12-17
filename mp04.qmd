@@ -19,7 +19,7 @@ execute:
   message: false
 ---
 
-![](images/jobsreport.png){width="100%" height="auto" fig-align="center"}
+![](images/jobsreport.png){width="70%" fig-align="center"}
 
 ## Introduction
 
