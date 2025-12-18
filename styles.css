@@ -20,13 +20,20 @@ h1, h2 {
   margin-bottom: 1.5rem;
 }
 
+/* Sidebar TOC: reserve space + avoid overlap (desktop only) */
+@media (min-width: 992px) {
+  .page-columns {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    column-gap: 2rem;
+  }
 
-/* Prevent floating TOC from overlapping header image */
-.sidebar nav#TOC {
-  margin-top: 4rem;
-}
+  .sidebar {
+    width: 300px;
+  }
 
-/* Fallback selector (safe to include) */
-#TOC {
-  margin-top: 4rem;
+  .sidebar nav#TOC,
+  #TOC {
+    width: 300px;
+    margin-top: 4rem;
+  }
 }

@@ -20,7 +20,7 @@ execute:
   message: false
 ---
 
-![](images/jobsreport.png){width="70%" fig-align="center"}
+![](images/jobsreport.png){width="85%" fig-align="center"}
 
 ## Introduction
 
