@@ -37,3 +37,36 @@ h1, h2 {
     margin-top: 4rem;
   }
 }
+
+
+/* Force Quarto sidebar TOC to take its own column (no overlap) */
+@media (min-width: 992px) {
+
+  /* Make sure the page uses a 2-column grid: content + sidebar */
+  .page-columns {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 320px !important;
+    column-gap: 2rem !important;
+  }
+
+  /* Force sidebar into the 2nd column and keep it from floating over content */
+  .page-columns > .content {
+    grid-column: 1 !important;
+  }
+  .page-columns > .sidebar {
+    grid-column: 2 !important;
+    position: sticky !important;   /* key line: sticky instead of overlay */
+    top: 5rem !important;
+    align-self: start !important;
+    height: calc(100vh - 5rem) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Keep TOC sized inside the sidebar */
+  .page-columns > .sidebar nav#TOC,
+  .page-columns > .sidebar #TOC {
+    width: 320px !important;
+    margin-top: 0 !important;
+  }
+}
+
