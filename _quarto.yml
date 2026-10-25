@@ -16,20 +16,17 @@ website:
   navbar:
     background: primary
     search: false
-    left:
+    right:
       - href: index.qmd
         text: Home
-      - text: "Mini-Projects"
-        menu:
-          - href: mp01.qmd
-            text: "MP01: Most Popular Programming on Netflix"
-          - href: mp02.qmd
-            text: "MP02: Making Backyards Affordable for All"
-          - href: mp03.qmd
-            text: "MP03: Green Canopy of NYC"
-          - href: mp04.qmd
-            text: "MP04: Just the Fact(-Check)s!"
-    right:
+      - href: mp01.qmd
+        text: "Project #1"
+      - href: mp02.qmd
+        text: "Project #2"
+      - href: mp03.qmd
+        text: "Project #3"
+      - href: mp04.qmd
+        text: "Project #4"
       - icon: github
         href: https://github.com/Actudata77/STA9750-2025-FALL
       - icon: linkedin
