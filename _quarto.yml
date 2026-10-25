@@ -1,6 +1,12 @@
 project:
   type: website
   output-dir: docs
+  render:
+    - "*.qmd"
+    - "!individual_report_sarr.qmd"
+
+execute:
+  freeze: auto
 
 website:
   title: "STA 9750 Submission Material"
@@ -10,7 +16,25 @@ website:
   navbar:
     background: primary
     search: false
-    
+    left:
+      - href: index.qmd
+        text: Home
+      - text: "Mini-Projects"
+        menu:
+          - href: mp01.qmd
+            text: "MP01: Most Popular Programming on Netflix"
+          - href: mp02.qmd
+            text: "MP02: Making Backyards Affordable for All"
+          - href: mp03.qmd
+            text: "MP03: Green Canopy of NYC"
+          - href: mp04.qmd
+            text: "MP04: Just the Fact(-Check)s!"
+    right:
+      - icon: github
+        href: https://github.com/Actudata77/STA9750-2025-FALL
+      - icon: linkedin
+        href: https://www.linkedin.com/in/hsarr2802/
+
 format:
   html:
     theme: materia
